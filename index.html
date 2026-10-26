@@ -574,7 +574,7 @@ section { scroll-margin-top: 24px; }
   <nav class="nav" aria-label="Principal">
     <a href="#para-quien">Para quién</a>
     <a href="#como-funciona">Cómo funciona</a>
-    <a class="btn btn--sm" href="#pide-tu-pagina">Quiero mi página</a>
+    <a class="btn btn--sm" href="#pide-tu-pagina" data-personaliza>Quiero mi página</a>
   </nav>
 </header>
 
@@ -593,8 +593,8 @@ section { scroll-margin-top: 24px; }
       <div>
         <p class="lead">Archival le da a tu negocio una página profesional: <strong>tus productos en 3D, girando, con la cantidad exacta que tienes.</strong> Cambias una existencia en tu celular y tus clientes la ven al momento.</p>
         <div class="hero-actions">
-          <a class="btn" href="#pide-tu-pagina">Quiero mi página</a>
-          <button class="btn btn--ghost btn--pz" type="button" data-personaliza><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M9 21V9" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="13" width="4" height="4" fill="currentColor"/></svg>Personaliza tu página</button>
+          <a class="btn" href="#pide-tu-pagina" data-personaliza>Quiero mi página</a>
+          <a class="btn btn--ghost" href="#pide-tu-pagina">Prefiero que me escriban</a>
         </div>
         <p class="hero-note mono"><span class="pulse" aria-hidden="true"></span>Prueba la demo: sube una foto o toca el botón azul.</p>
       </div>
@@ -1125,6 +1125,7 @@ section { scroll-margin-top: 24px; }
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-personaliza]");
     if (!b) return;
+    e.preventDefault(); // los enlaces "Quiero mi página" abren el estudio; sin JS bajan al formulario
     const giro = tabs.find((t) => t.getAttribute("aria-selected") === "true")?.dataset.giro;
     b.setAttribute("aria-busy", "true");
     import("./personaliza.js").then((m) => m.abrir({ giro }))
