@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Archival</title>
+<meta name="description" content="Archival le da a tu negocio una página profesional: tus productos en 3D, girando, con la cantidad exacta que tienes. Cambias una existencia en tu celular y tus clientes la ven al momento.">
+<meta name="archival-whatsapp" content=""><!-- WhatsApp de Archival a 10 dígitos; vacío = los envíos avisan que aún no está conectado -->
+<meta name="theme-color" content="#F2F4F8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0C14" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231E40FF'/%3E%3Cg transform='translate(10 10) scale(.6875)'%3E%3Cpath fill='%23fff' d='M2 62L25 2H39L62 62H48L32 20L16 62Z'/%3E%3Crect fill='%230F1220' x='27.5' y='43' width='9' height='9'/%3E%3C/g%3E%3C/svg%3E">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+} }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: titular gigante a todo lo ancho; debajo, la demo viva (celular -> página) domina. Todo lo demás es silencio. */
+:root {
+  --bg: #F2F4F8;        /* Ficha: gris con sesgo azul, fondo */
+  --surface: #FFFFFF;   /* Papel: superficies */
+  --ink: #0F1220;       /* Tinta */
+  --muted: #586074;     /* Grafito: texto secundario */
+  --line: #DEE2EB;      /* Línea */
+  --blue: #1E40FF;      /* Azul rey Archival: el punto vivo y la acción */
+  --blue-text: #1E40FF; /* azul para texto sobre fondo claro */
+  --on-blue: #FFFFFF;
+  --panel: #0F1220;     /* el celular del dueño */
+  --on-panel: #EEF0F3;
+  --panel-muted: #8B91A0;
+  --panel-line: #262B3B;
+  --stage: #ECEEF2;       /* piso de estudio de la vitrina */
+  --stage-light: 0.95;   /* charco de luz bajo el producto */
+  --stage-shadow: 0.32;
+  --ok: #1E7A4F;
+  --low: #A85A0C;
+  --out: #B3362A;
+
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --text: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);    /* entradas y respuestas */
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);     /* salidas */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* aterrizajes con rebote corto */
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1240px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A0C14; --surface: #131726; --ink: #EEF0F6; --muted: #98A0B4; --line: #252B3D;
+    --blue: #3552FF; --blue-text: #8A9DFF; --panel: #1B2033; --on-panel: #EEF0F3; --panel-muted: #8B91A0; --panel-line: #30343E;
+    --ok: #4CC38A; --low: #F0A04B; --out: #F07467;
+    --stage: #1A1D27; --stage-light: 0.11; --stage-shadow: 0.55;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A0C14; --surface: #131726; --ink: #EEF0F6; --muted: #98A0B4; --line: #252B3D;
+  --blue: #3552FF; --blue-text: #8A9DFF; --panel: #1B2033; --on-panel: #EEF0F3; --panel-muted: #8B91A0; --panel-line: #30343E;
+  --ok: #4CC38A; --low: #F0A04B; --out: #F07467;
+  --stage: #1A1D27; --stage-light: 0.11; --stage-shadow: 0.55;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+a { color: inherit; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+::selection { background: var(--blue); color: var(--on-blue); }
+
+.wrap {
+  max-width: calc(var(--max) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--gutter), env(safe-area-inset-right, 0px));
+}
+.mono { font-family: var(--mono); font-size: 0.8125rem; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.label { font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+
+/* ---------- Header ---------- */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 22px; }
+.wordmark { display: inline-flex; color: var(--ink); text-decoration: none; }
+.wordmark svg { height: 22px; width: auto; display: block; overflow: visible; }
+.wordmark .dot, .mark .sq { fill: var(--blue); }
+.brand { display: inline-flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; }
+.mark { width: 30px; height: 30px; display: block; }
+.mark .legs { fill: currentColor; }
+.nav { display: flex; align-items: center; gap: 28px; }
+.nav a:not(.btn) { text-decoration: none; color: var(--muted); font-size: 0.9375rem; transition: color 150ms ease; }
+.nav a:not(.btn):hover { color: var(--ink); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 44px; padding: 0 20px;
+  border-radius: 6px; border: 1px solid transparent;
+  background: var(--blue); color: var(--on-blue);
+  font-weight: 600; font-size: 0.9375rem; text-decoration: none; cursor: pointer;
+  transition: transform 160ms var(--ease-out), background-color 160ms ease, border-color 160ms ease;
+}
+.btn:hover { background: color-mix(in srgb, var(--blue) 88%, #000); }
+.btn:active { transform: scale(0.97); }
+.btn--ghost, .btn--ghost:hover { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn--ghost:hover { border-color: var(--ink); }
+.btn--sm { min-height: 38px; padding: 0 14px; font-size: 0.875rem; }
+.btn--pz { gap: 9px; }
+.btn--pz svg { width: 18px; height: 18px; flex: none; transition: transform 300ms var(--ease-out); }
+.btn--pz:hover svg { transform: rotate(-8deg) scale(1.08); }
+
+/* ---------- Hero ---------- */
+.hero { padding-block: clamp(32px, 7vw, 88px) clamp(56px, 8vw, 112px); }
+.headline {
+  margin: 0;
+  font-family: var(--display);
+  font-stretch: 125%;
+  font-weight: 850;
+  font-size: clamp(3.1rem, 11.2vw, 10.75rem);
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+}
+.headline .line { display: block; overflow: hidden; padding-bottom: 0.06em; }
+.headline .line > span { display: inline-block; animation: rise 900ms var(--ease-out) both; }
+.headline .line:nth-child(2) > span { animation-delay: 90ms; }
+.live-dot {
+  display: inline-block; width: 0.2em; height: 0.2em; margin-left: 0.04em;
+  background: var(--blue); vertical-align: baseline;
+  animation: land 760ms var(--ease-spring) 620ms both, blink 2.4s ease-in-out 2.2s infinite;
+}
+@keyframes land { from { transform: translateY(-1.6em); } to { transform: none; } }
+.hero-grid > * { animation: lift 800ms var(--ease-out) both; }
+.hero-grid > *:nth-child(1) { animation-delay: 260ms; }
+.hero-grid > *:nth-child(2) { animation-delay: 360ms; }
+@keyframes lift { from { transform: translateY(18px); opacity: 0.5; } to { transform: none; opacity: 1; } }
+@keyframes rise { from { transform: translateY(102%); } to { transform: none; } }
+@keyframes blink { 0%, 72%, 100% { opacity: 1; } 84% { opacity: 0.3; } }
+
+.hero-grid {
+  margin-top: clamp(36px, 5vw, 64px);
+  display: grid; gap: clamp(28px, 4vw, 56px);
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  align-items: start;
+}
+.lead { margin: 0; font-size: clamp(1.125rem, 1.4vw, 1.3125rem); line-height: 1.45; max-width: 30ch; text-wrap: pretty; }
+.lead strong { font-weight: 650; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.hero-note { margin-top: 28px; display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.pulse { width: 8px; height: 8px; background: var(--blue); flex: none; animation: blink 2.4s ease-in-out infinite; }
+
+/* ---------- Demo ---------- */
+.demo {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: clamp(14px, 2vw, 22px);
+  min-width: 0;
+}
+.demo-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 4px 4px 18px; }
+.tabs { position: relative; display: inline-flex; padding: 3px; border-radius: 9px; background: var(--bg); border: 1px solid var(--line); }
+.tab {
+  position: relative; border: 0; background: transparent; cursor: pointer;
+  padding: 8px 14px; min-height: 36px; border-radius: 6px;
+  font-size: 0.875rem; font-weight: 550; color: var(--muted);
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.tab { z-index: 1; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); }
+.tab-ink {
+  position: absolute; left: 0; top: 3px; bottom: 3px; width: 100px;
+  border-radius: 6px; background: var(--surface); box-shadow: 0 1px 2px rgba(17,19,24,0.1);
+  transform-origin: left center;
+  transition: transform 340ms var(--ease-out);
+}
+.tabs:not(.ready) .tab[aria-selected="true"] { background: var(--surface); }
+.tabs:not(.ready) .tab-ink { display: none; }
+
+.demo-body { display: grid; grid-template-columns: minmax(0, 5fr) 56px minmax(0, 7fr); align-items: stretch; }
+.col-label { margin-bottom: 10px; }
+.demo-body > div:not(.wire) { display: flex; flex-direction: column; min-width: 0; }
+
+/* celular del dueño */
+.phone {
+  background: var(--panel); color: var(--on-panel);
+  border-radius: 14px; padding: 18px;
+  display: flex; flex-direction: column; gap: 16px; flex: 1;
+}
+.phone-top { display: flex; justify-content: space-between; align-items: center; color: var(--panel-muted); }
+.phone-item { border-top: 1px solid var(--panel-line); padding-top: 16px; display: grid; gap: 4px; }
+.phone-name { font-weight: 650; font-size: 1rem; line-height: 1.25; }
+.phone-sub { color: var(--panel-muted); }
+.stepper { display: grid; grid-template-columns: 52px 1fr 52px; align-items: center; gap: 8px; margin-top: 10px; }
+.step {
+  height: 52px; border-radius: 10px; border: 1px solid var(--panel-line);
+  background: transparent; color: var(--on-panel); cursor: pointer;
+  display: grid; place-items: center;
+  transition: transform 140ms var(--ease-out), background-color 140ms ease, border-color 140ms ease;
+}
+.step svg { width: 18px; height: 18px; }
+.step:hover { border-color: var(--panel-muted); }
+.step:active, .step.is-pressing { transform: scale(0.92); }
+.step:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.step--sell { background: var(--blue); color: var(--on-blue); border-color: var(--blue); }
+.step--sell:hover { border-color: var(--blue); }
+.phone :focus-visible { outline-color: #FFFFFF; }
+.count .num { display: inline-block; }
+.count { text-align: center; font-family: var(--mono); font-size: 1.75rem; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; }
+.count small { display: block; font-size: 0.6875rem; color: var(--panel-muted); margin-top: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+.phone-hint { margin-top: auto; color: var(--panel-muted); }
+.others { list-style: none; margin: 0; padding: 0; display: grid; }
+.others li { display: flex; justify-content: space-between; gap: 12px; padding-block: 10px; border-top: 1px solid var(--panel-line); font-size: 0.875rem; color: var(--panel-muted); }
+.others li span:last-child { font-family: var(--mono); color: var(--on-panel); font-variant-numeric: tabular-nums; }
+
+.phone-head { display: flex; align-items: center; gap: 12px; }
+.phone-id { display: grid; gap: 4px; min-width: 0; }
+.thumb { width: 44px; height: 44px; flex: none; border-radius: 8px; object-fit: contain; padding: 3px; background: #F2F4F8; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.upload {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+  border: 1px dashed var(--panel-muted); border-radius: 10px; color: var(--on-panel);
+  font-size: 0.875rem; font-weight: 600; cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, transform 160ms var(--ease-out);
+}
+.upload svg { width: 18px; height: 18px; flex: none; }
+@media (hover: hover) and (pointer: fine) { .upload:hover { border-color: var(--on-panel); background: rgba(255,255,255,0.04); } }
+.upload:active { transform: scale(0.97); }
+.sr-only:focus-visible + .upload { outline: 2px solid #FFFFFF; outline-offset: 3px; }
+
+/* conector: el punto viaja del celular a la página */
+.wire { position: relative; display: grid; place-items: center; }
+.wire::before { content: ""; position: absolute; left: 8px; right: 8px; top: 50%; height: 1px; background: repeating-linear-gradient(90deg, var(--line) 0 4px, transparent 4px 8px); }
+.packet { position: absolute; left: 4px; top: calc(50% - 4px); width: 8px; height: 8px; background: var(--blue); opacity: 0; }
+.packet.go { animation: travel 420ms var(--ease-out) both; }
+@keyframes travel { 0% { opacity: 1; transform: translateX(0) scale(1); } 80% { opacity: 1; transform: translateX(34px) scale(1); } 100% { opacity: 0; transform: translateX(40px) scale(0.4); } }
+
+/* la página del cliente */
+.storefront { perspective: 1100px; }
+.demo-body > .wire { align-self: stretch; }
+.card {
+  flex: 1;
+  border: 1px solid var(--line); border-radius: 14px;
+  background: var(--surface);
+  padding: clamp(16px, 2vw, 24px);
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative;
+  transform-style: preserve-3d;
+}
+.card::after {
+  content: ""; position: absolute; inset: -1px; border-radius: inherit;
+  border: 2px solid var(--blue); opacity: 0; pointer-events: none;
+}
+.card.received::after { animation: ring 640ms var(--ease-out); }
+@keyframes ring { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.025); } }
+.strike {
+  background: linear-gradient(currentColor, currentColor) 0 56% / 0% 0.09em no-repeat;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  transition: background-size 420ms var(--ease-out), opacity 300ms ease;
+}
+.card.is-out .strike { background-size: 100% 0.09em; opacity: 0.45; }
+/* Vitrina 3D: la foto del producto convertida en pieza que gira */
+.viewer {
+  position: relative; aspect-ratio: 1 / 1; max-height: 360px;
+  border-radius: 10px; overflow: hidden; cursor: grab; touch-action: pan-y;
+  /* Piso de estudio: un tono distinto de la tarjeta; la luz bajo el producto la pinta el 3D */
+  background: var(--stage);
+}
+.viewer.is-grabbing { cursor: grabbing; }
+.viewer > canvas, .viewer > img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.viewer > img { object-fit: contain; padding: 12%; }
+.viewer.v3d-off { display: none; }
+.viewer-qty { position: absolute; left: 14px; top: 12px; z-index: 1; display: grid; line-height: 1; pointer-events: none; }
+.viewer-qty b { font-family: var(--display); font-stretch: 125%; font-weight: 850; font-size: clamp(2.2rem, 4vw, 3rem); letter-spacing: -0.045em; font-variant-numeric: tabular-nums; }
+.viewer-qty span { margin-top: 6px; font-family: var(--mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.card.is-out .viewer-qty b { color: var(--out); }
+.viewer-hint {
+  position: absolute; right: 10px; bottom: 10px; z-index: 1; pointer-events: none;
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 6px;
+  color: var(--muted); font-size: 0.6875rem;
+  background: color-mix(in srgb, var(--stage) 70%, var(--surface));
+  transition: opacity 300ms ease, transform 300ms var(--ease-out);
+}
+.viewer-hint svg { width: 16px; height: 10px; }
+.viewer.dragged .viewer-hint { opacity: 0; transform: translateY(4px); }
+.viewer.is-loading::after {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--surface) 55%, transparent) 50%, transparent 70%) 0 0 / 220% 100%;
+  animation: shimmer 1.1s linear infinite;
+}
+@keyframes shimmer { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+
+.card-meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); }
+.card-name { margin: 0; font-family: var(--display); font-stretch: 112%; font-weight: 800; font-size: clamp(1.5rem, 2.6vw, 2.25rem); line-height: 0.98; letter-spacing: -0.03em; text-wrap: balance; }
+.card-desc { margin: 0; color: var(--muted); font-size: 0.9375rem; line-height: 1.45; }
+.card-row { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: auto; }
+.price { font-family: var(--display); font-stretch: 100%; font-weight: 700; font-size: 1.5rem; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.price small { font-family: var(--mono); font-size: 0.75rem; font-weight: 400; color: var(--muted); margin-left: 4px; letter-spacing: 0; }
+.units { display: flex; flex-wrap: wrap; gap: 4px; max-width: 220px; }
+.unit { width: 12px; height: 12px; border: 1.5px solid var(--ink); transition: background-color 220ms ease, border-color 220ms ease, transform 220ms var(--ease-out); }
+.unit.on { background: var(--ink); }
+.unit.just-sold { animation: sold 520ms var(--ease-out); }
+.unit.just-added { animation: added 420ms var(--ease-spring); }
+@keyframes added { from { transform: scale(0.6); background: var(--blue); border-color: var(--blue); } }
+@keyframes sold { 0% { background: var(--blue); border-color: var(--blue); transform: scale(1.35); } 100% { transform: none; } }
+.status { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9375rem; }
+.chip i { width: 8px; height: 8px; background: currentColor; display: block; }
+.chip[data-state="ok"] { color: var(--ok); }
+.chip[data-state="low"] { color: var(--low); }
+.chip[data-state="out"] { color: var(--out); }
+.stamp { color: var(--muted); }
+.card .btn { width: 100%; }
+
+.roll { display: inline-block; }
+
+/* Tallas: cada una con lo que queda; la que se acaba se tacha */
+.sizes { display: flex; flex-wrap: wrap; gap: 6px; }
+.sizes[hidden] { display: none; }
+.size {
+  min-width: 52px; padding: 6px 8px 5px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  display: grid; justify-items: center; gap: 1px; cursor: pointer; font: inherit;
+  transition: transform 160ms var(--ease-out), border-color 160ms ease, background-color 160ms ease, color 160ms ease, opacity 200ms ease;
+}
+.size b { font-family: var(--display); font-weight: 750; font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+.size small { font-family: var(--mono); font-size: 0.625rem; color: var(--muted); letter-spacing: 0.02em; }
+.size:active { transform: scale(0.94); }
+.size[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--bg); }
+.size[aria-pressed="true"] small { color: color-mix(in srgb, var(--bg) 70%, transparent); }
+.size.is-empty b { text-decoration: line-through; text-decoration-thickness: 2px; }
+.size.is-empty:not([aria-pressed="true"]) { opacity: 0.5; }
+.size.bump { animation: bump 420ms var(--ease-spring); }
+@keyframes bump { 40% { transform: scale(1.12); } }
+.phone .sizes { margin-top: 12px; }
+.phone .size { background: transparent; color: var(--on-panel); border-color: var(--panel-line); }
+.phone .size small { color: var(--panel-muted); }
+.phone .size[aria-pressed="true"] { background: var(--on-panel); color: var(--panel); border-color: var(--on-panel); }
+.phone .size[aria-pressed="true"] small { color: var(--panel); opacity: .7; }
+
+/* Galería: hasta 5 fotos o el 3D, con flechas y bolitas */
+.viewer.is-2d { cursor: default; }
+.viewer.is-2d > canvas { visibility: hidden; }
+.viewer > .slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 10%; opacity: 0; pointer-events: none; }
+.viewer.is-2d > .slide { opacity: 1; }
+.viewer > .slide.fondo-original { object-fit: cover; padding: 0; }
+.viewer.estudio { background: radial-gradient(120% 70% at 50% 18%, #FFFFFF, color-mix(in srgb, var(--stage) 75%, #C9CFDB) 70%); }
+.viewer.estudio::before { content: ""; position: absolute; left: 22%; right: 22%; bottom: 12%; height: 7%; border-radius: 50%; background: radial-gradient(closest-side, rgba(15,18,32,.28), transparent); }
+.viewer.is-2d .viewer-hint { display: none; }
+.g-arrow {
+  position: absolute; top: 50%; z-index: 2; width: 40px; height: 40px; margin-top: -20px; border-radius: 50%;
+  border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 86%, transparent); color: var(--ink);
+  display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(6px);
+  transition: transform 160ms var(--ease-out), background-color 160ms ease, opacity 200ms ease;
+}
+.g-arrow svg { width: 16px; height: 16px; }
+.g-arrow:hover { background: var(--surface); }
+.g-arrow:active { transform: scale(0.9); }
+.g-arrow[hidden] { display: none; }
+.g-prev { left: 10px; } .g-next { right: 10px; }
+.gallery-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: -4px; }
+.g-dots { display: flex; gap: 6px; align-items: center; }
+.g-dots button { width: 22px; height: 22px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+.g-dots button::before { content: ""; width: 7px; height: 7px; border-radius: 4px; background: var(--line); transition: width 300ms var(--ease-out), background-color 200ms ease; }
+.g-dots button[aria-current="true"]::before { width: 20px; background: var(--ink); }
+.g-dots .g-3d { font-family: var(--mono); font-size: 0.625rem; color: var(--muted); width: auto; padding: 0 2px; }
+.g-dots .g-3d::before { display: none; }
+.g-dots .g-3d[aria-current="true"] { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--stage); }
+.seg[hidden] { display: none; }
+.seg button { border: 0; background: none; font: inherit; font-size: 0.75rem; font-weight: 600; color: var(--muted); padding: 6px 10px; border-radius: 7px; cursor: pointer; transition: background-color 180ms ease, color 180ms ease; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 0 rgba(15,18,32,.08); }
+.seg button:disabled { opacity: .4; cursor: not-allowed; }
+.g-note { font-size: 0.8125rem; color: var(--muted); margin: -6px 0 0; }
+.g-note:empty { display: none; }
+
+/* Sold out: cuando se vende todo, cae un sello sobre la foto */
+.soldout {
+  position: absolute; left: 50%; top: 42%; z-index: 3; pointer-events: none;
+  translate: -50% -50%; rotate: -9deg; scale: 2.2; opacity: 0;
+  padding: 10px 20px 8px; border: 4px solid var(--out); border-radius: 12px; color: var(--out);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: clamp(1.6rem, 3.4vw, 2.4rem); letter-spacing: -0.02em; line-height: 1; text-align: center; white-space: nowrap;
+}
+.soldout small { display: block; margin-top: 4px; font-family: var(--mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.04em; }
+.card.is-soldout .soldout { opacity: 1; scale: 1; transition: scale 420ms var(--ease-spring), opacity 160ms ease; }
+.card.is-soldout .viewer > * { filter: grayscale(.85); opacity: .55; }
+.card.is-soldout .viewer > .viewer-qty { opacity: 1; filter: none; }
+@media (prefers-reduced-motion: reduce) { .card.is-soldout .soldout { transition: none; } }
+
+/* ---------- Secciones ---------- */
+section { scroll-margin-top: 24px; }
+.section { padding-block: clamp(72px, 10vw, 144px); border-top: 1px solid var(--line); }
+.section-head { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(28px, 4vw, 56px); align-items: end; margin-bottom: clamp(40px, 6vw, 72px); }
+.h2 { margin: 0; font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: clamp(2rem, 5vw, 4.25rem); line-height: 0.95; letter-spacing: -0.04em; text-wrap: balance; }
+.section-head p { margin: 0; color: var(--muted); max-width: 46ch; font-size: 1.0625rem; }
+
+/* Para quién */
+.giros { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+.giro {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 5fr) minmax(0, 2fr);
+  gap: clamp(16px, 3vw, 40px); align-items: baseline;
+  padding-block: clamp(22px, 3vw, 34px);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+}
+.giro::before {
+  content: ""; position: absolute; left: 0; top: -1px; height: 2px; width: 100%;
+  background: var(--blue); transform: scaleX(0); transform-origin: left;
+  transition: transform 500ms var(--ease-out);
+}
+@media (hover: hover) { .giro:hover::before { transform: scaleX(1); } }
+.giro h3 { margin: 0; font-family: var(--display); font-stretch: 118%; font-weight: 750; font-size: clamp(1.5rem, 3vw, 2.5rem); line-height: 1; letter-spacing: -0.03em; }
+.giro p { margin: 0; color: var(--muted); max-width: 42ch; }
+.giro .mono { justify-self: end; text-align: right; color: var(--ink); }
+
+/* Cómo funciona: es una secuencia real, por eso va numerada */
+/* Video de cómo funciona: arranca solo y sin sonido cuando se ve; con controles para pausarlo */
+.film { margin: clamp(24px, 4vw, 48px) 0 clamp(32px, 5vw, 64px); border-radius: 20px; overflow: hidden; aspect-ratio: 16 / 9; background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.film video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(28px, 4vw, 56px); counter-reset: step; }
+.steps li { counter-increment: step; display: grid; gap: 12px; align-content: start; }
+.steps li::before { content: "Paso " counter(step); font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding-bottom: 14px; border-bottom: 1px solid var(--ink); }
+.steps h3 { margin: 6px 0 0; font-size: 1.375rem; font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; }
+.steps p { margin: 0; color: var(--muted); max-width: 36ch; }
+
+/* La pregunta */
+.question { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(28px, 4vw, 56px); align-items: center; }
+.bubble {
+  justify-self: start;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 18px 18px 18px 4px;
+  padding: 14px 18px; max-width: 30ch;
+  font-size: 1.0625rem;
+}
+.bubble .mono { display: block; color: var(--muted); margin-top: 6px; font-size: 0.75rem; }
+.answer { margin: 0; font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: clamp(2rem, 5.4vw, 4.75rem); line-height: 0.95; letter-spacing: -0.04em; text-wrap: balance; }
+.answer mark { background: var(--blue); color: var(--on-blue); padding: 0 0.08em; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+
+/* CTA */
+.cta { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(32px, 5vw, 72px); align-items: start; }
+.form { display: grid; gap: 16px; }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 0.875rem; font-weight: 600; }
+.field input, .field select {
+  min-height: 48px; padding: 0 14px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--surface);
+  font-size: 1rem; width: 100%;
+  transition: border-color 150ms ease;
+}
+.field input:hover, .field select:hover { border-color: var(--muted); }
+.field input:focus-visible, .field select:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; border-color: var(--ink); }
+.field .hint { color: var(--muted); font-size: 0.8125rem; }
+.field input[aria-invalid="true"] { border-color: var(--out); }
+.error { color: var(--out); font-size: 0.8125rem; min-height: 1.2em; }
+.form .btn { justify-self: start; min-height: 48px; padding: 0 24px; }
+.done { border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 24px; display: grid; gap: 8px; }
+.done strong { font-size: 1.25rem; }
+.done p { margin: 0; color: var(--muted); }
+
+/* Banda final: el único lugar donde el azul llena la pantalla */
+.band { background: var(--blue); color: #FFFFFF; border-top: 0; }
+.band .h2 { color: #FFFFFF; }
+.band .cta-copy { color: rgba(255,255,255,0.82); max-width: 40ch; margin: 20px 0 0; }
+.band .field label { color: #FFFFFF; }
+.band .field input, .band .field select { background: #FFFFFF; color: #0F1220; border-color: transparent; }
+.band .field input::placeholder { color: #7A8296; }
+.band .field input:focus-visible, .band .field select:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 2px; border-color: transparent; }
+.band .field input[aria-invalid="true"] { outline: 3px solid #FFD5CF; }
+.band .error { color: #FFFFFF; font-weight: 600; }
+.band .btn { background: #0F1220; color: #FFFFFF; }
+.band .btn:hover { background: #000000; }
+.band .btn--ghost { background: transparent; color: #FFFFFF; border-color: rgba(255,255,255,0.45); }
+.band .btn--ghost:hover { background: rgba(255,255,255,0.1); border-color: #FFFFFF; }
+.cta-alt { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.cta-alt small { color: rgba(255,255,255,0.78); font-size: 0.875rem; }
+.band :focus-visible { outline-color: #FFFFFF; }
+.band .done { background: #FFFFFF; color: #0F1220; border: 0; }
+.band .done p { color: #586074; }
+.band ::selection { background: #FFFFFF; color: var(--blue); }
+
+/* Footer */
+.foot-band { border-top: 1px solid var(--line); }
+.foot { padding-block: 32px 40px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; color: var(--muted); }
+.foot .wordmark svg { height: 16px; }
+.foot .mark { width: 22px; height: 22px; }
+.credits { flex-basis: 100%; margin: 0; font-size: 0.75rem; color: var(--muted); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 960px) {
+  .hero-grid, .section-head, .question, .cta { grid-template-columns: minmax(0, 1fr); }
+  .lead { max-width: 40ch; }
+  .giro { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .giro .mono { justify-self: start; text-align: left; color: var(--muted); }
+  .steps { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 680px) {
+  .nav a:not(.btn) { display: none; }
+  .demo-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 40px auto; }
+  .wire::before { left: 50%; right: auto; top: 6px; bottom: 6px; width: 1px; height: auto; background: repeating-linear-gradient(180deg, var(--line) 0 4px, transparent 4px 8px); }
+  .packet { left: calc(50% - 4px); top: 2px; }
+  @keyframes travel { 0% { opacity: 1; transform: translateY(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(28px); } }
+  .tabs { width: 100%; }
+  .tab { flex: 1; padding-inline: 8px; }
+  .demo-head .label { display: none; }
+}
+
+/* Movimiento ligado al scroll. Solo transform y fondos: el contenido siempre se lee. */
+@supports (animation-timeline: view()) {
+  .section-head, .giro, .steps li, .bubble {
+    animation: drift linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 70%;
+  }
+  @keyframes drift { from { transform: translateY(36px); } to { transform: none; } }
+  .bubble { transform-origin: left bottom; animation-name: arrive; animation-range: entry 10% cover 30%; }
+  @keyframes arrive { from { transform: translateY(28px) scale(0.92); } to { transform: none; } }
+  .steps li { view-timeline-name: --step; }
+  .steps li::before {
+    border-bottom: 0;
+    background: linear-gradient(var(--ink), var(--ink)) left bottom / 100% 1px no-repeat;
+    animation: rule linear both; animation-timeline: --step; animation-range: entry 20% cover 45%;
+  }
+  @keyframes rule { from { background-size: 0% 1px; } to { background-size: 100% 1px; } }
+  .answer mark {
+    background: linear-gradient(var(--blue), var(--blue)) left center / 100% 100% no-repeat;
+    -webkit-box-decoration-break: clone; box-decoration-break: clone;
+    animation: sweep linear both; animation-timeline: view(); animation-range: entry 20% cover 38%;
+  }
+  /* El video se asienta al entrar; la banda azul se abre de tarjeta a pantalla completa */
+  .film { animation: settle linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+  @keyframes settle { from { transform: scale(0.92); border-radius: 36px; } to { transform: none; } }
+  .band { animation: open linear both; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+  @keyframes open { from { clip-path: inset(0 5% round 32px); } to { clip-path: inset(0 0 round 0); } }
+  /* Cada giro entra por partes: nombre, explicación y dato, en escalera */
+  .giro { animation: none; }
+  .giro h3, .giro p, .giro .mono { animation: slide linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+  .giro p { animation-range: entry 10% entry 90%; }
+  .giro .mono { animation-name: slide-r; animation-range: entry 20% entry 100%; }
+  @keyframes slide { from { transform: translateX(-28px); opacity: 0.2; } to { transform: none; opacity: 1; } }
+  @keyframes slide-r { from { transform: translateX(28px); opacity: 0.2; } to { transform: none; opacity: 1; } }
+  .steps li:nth-child(2) { animation-range: entry 10% entry 80%; }
+  .steps li:nth-child(3) { animation-range: entry 20% entry 90%; }
+  @keyframes sweep {
+    from { background-size: 0% 100%; color: var(--ink); }
+    55% { color: var(--ink); }
+    70% { color: var(--on-blue); }
+    to { background-size: 100% 100%; color: var(--on-blue); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  .section-head, .giro, .steps li, .bubble, .steps li::before, .answer mark, .film, .band, .giro h3, .giro p, .giro .mono { animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="wrap top">
+  <a class="brand" href="#" aria-label="Archival, inicio"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="legs" d="M2 62L25 2H39L62 62H48L32 20L16 62Z"/><rect class="sq" x="27.5" y="43" width="9" height="9"/></svg><span class="wordmark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -798 4824 818" aria-hidden="true" focusable="false"><g id="wordmark"><path fill="currentColor" d="M270 12Q221 12 178 5Q136 -2 104 -20Q73 -37 55 -68Q38 -98 38 -145Q38 -208 72 -244Q106 -281 169 -297Q232 -314 317 -319Q403 -323 506 -323V-339Q506 -370 491 -388Q475 -406 446 -414Q416 -422 372 -422Q340 -422 310 -417Q280 -412 261 -402Q242 -391 242 -373V-365H55Q54 -369 54 -372Q54 -375 54 -380Q54 -427 91 -463Q128 -499 201 -519Q274 -540 381 -540Q481 -540 550 -522Q619 -505 655 -467Q690 -428 690 -363V-152Q690 -135 698 -124Q706 -113 723 -113H776V-7Q762 -1 731 6Q700 12 665 12Q616 12 586 2Q556 -8 542 -26Q527 -43 521 -64H513Q485 -41 447 -23Q410 -6 366 3Q322 12 270 12ZM322 -105Q345 -105 375 -110Q406 -116 436 -127Q466 -138 486 -155Q506 -173 506 -198V-228Q407 -228 344 -220Q281 -212 251 -196Q221 -179 221 -153Q221 -133 236 -122Q250 -112 274 -109Q297 -105 322 -105Z M831 0V-528H981L993 -438H1002Q1017 -470 1041 -493Q1066 -516 1097 -528Q1128 -540 1163 -540Q1183 -540 1202 -537Q1220 -535 1236 -528V-383H1148Q1113 -383 1088 -372Q1063 -360 1047 -341Q1031 -321 1023 -297Q1016 -272 1016 -244V0Z M1629 12Q1523 12 1445 -18Q1366 -49 1323 -110Q1281 -171 1281 -264Q1281 -357 1323 -418Q1366 -479 1445 -509Q1523 -540 1629 -540Q1698 -540 1758 -526Q1818 -512 1865 -484Q1911 -456 1936 -414Q1962 -373 1962 -318H1775Q1775 -347 1756 -369Q1736 -391 1703 -402Q1670 -414 1629 -414Q1576 -414 1541 -397Q1506 -379 1489 -348Q1471 -316 1471 -274V-254Q1471 -212 1489 -181Q1507 -149 1544 -131Q1580 -113 1636 -113Q1677 -113 1710 -126Q1743 -139 1763 -162Q1782 -184 1782 -211H1962Q1962 -154 1936 -112Q1910 -70 1865 -43Q1819 -15 1758 -2Q1698 12 1629 12Z M2062 0V-725H2247V-461H2254Q2282 -490 2315 -507Q2348 -525 2385 -532Q2422 -540 2459 -540Q2536 -540 2587 -515Q2638 -491 2664 -442Q2689 -392 2689 -318V0H2505V-293Q2505 -320 2497 -340Q2490 -361 2475 -375Q2461 -388 2439 -395Q2418 -402 2390 -402Q2351 -402 2318 -386Q2286 -370 2266 -341Q2247 -313 2247 -275V0Z M2807 0V-528H2992V0Z M3301 0 3049 -528H3250L3351 -289Q3358 -274 3366 -252Q3375 -229 3384 -205Q3393 -182 3400 -164H3409Q3416 -182 3424 -206Q3433 -230 3442 -253Q3451 -276 3457 -291L3557 -528H3750L3498 0Z M4013 12Q3964 12 3921 5Q3879 -2 3847 -20Q3816 -37 3798 -68Q3781 -98 3781 -145Q3781 -208 3815 -244Q3849 -281 3912 -297Q3975 -314 4060 -319Q4146 -323 4249 -323V-339Q4249 -370 4234 -388Q4218 -406 4189 -414Q4159 -422 4115 -422Q4083 -422 4053 -417Q4023 -412 4004 -402Q3985 -391 3985 -373V-365H3798Q3797 -369 3797 -372Q3797 -375 3797 -380Q3797 -427 3834 -463Q3871 -499 3944 -519Q4017 -540 4124 -540Q4224 -540 4293 -522Q4362 -505 4398 -467Q4433 -428 4433 -363V-152Q4433 -135 4441 -124Q4449 -113 4466 -113H4519V-7Q4505 -1 4474 6Q4443 12 4408 12Q4359 12 4329 2Q4299 -8 4285 -26Q4270 -43 4264 -64H4256Q4228 -41 4190 -23Q4153 -6 4109 3Q4065 12 4013 12ZM4065 -105Q4088 -105 4118 -110Q4149 -116 4179 -127Q4209 -138 4229 -155Q4249 -173 4249 -198V-228Q4150 -228 4087 -220Q4024 -212 3994 -196Q3964 -179 3964 -153Q3964 -133 3979 -122Q3993 -112 4017 -109Q4040 -105 4065 -105Z M4574 0V-725H4759V0Z"/><rect class="dot" style="fill:var(--blue)" x="2807" y="-788" width="185" height="185"/></g></svg></span></a>
+  <nav class="nav" aria-label="Principal">
+    <a href="#para-quien">Para quién</a>
+    <a href="#como-funciona">Cómo funciona</a>
+    <a class="btn btn--sm" href="#pide-tu-pagina">Quiero mi página</a>
+  </nav>
+</header>
+
+<main>
+  <section class="wrap hero" aria-labelledby="titular">
+    <h1 class="headline" id="titular">
+      <span class="line"><span>Tu negocio,</span></span>
+      <span class="line"><span>en otra liga<span class="live-dot" aria-hidden="true"></span></span></span>
+    </h1>
+    <figure class="film">
+      <video id="film" src="video/archival.mp4" poster="video/archival.jpg" controls muted playsinline preload="none"
+             aria-label="Video de 36 segundos con voz: Vale le toma foto a sus tenis, cambia la cantidad desde su celular y su clienta los aparta por WhatsApp."></video>
+    </figure>
+
+    <div class="hero-grid">
+      <div>
+        <p class="lead">Archival le da a tu negocio una página profesional: <strong>tus productos en 3D, girando, con la cantidad exacta que tienes.</strong> Cambias una existencia en tu celular y tus clientes la ven al momento.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#pide-tu-pagina">Quiero mi página</a>
+          <button class="btn btn--ghost btn--pz" type="button" data-personaliza><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M9 21V9" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="13" width="4" height="4" fill="currentColor"/></svg>Personaliza tu página</button>
+        </div>
+        <p class="hero-note mono"><span class="pulse" aria-hidden="true"></span>Prueba la demo: sube una foto o toca el botón azul.</p>
+      </div>
+
+      <div class="demo" id="demo">
+        <div class="demo-head">
+          <div class="tabs" role="tablist" aria-label="Tipo de negocio">
+            <span class="tab-ink" aria-hidden="true"></span>
+            <button class="tab" role="tab" id="tab-restaurante" aria-selected="true" aria-controls="demo-panel" data-giro="restaurante">Restaurante</button>
+            <button class="tab" role="tab" id="tab-reventa" aria-selected="false" aria-controls="demo-panel" data-giro="reventa" tabindex="-1">Reventa</button>
+            <button class="tab" role="tab" id="tab-tienda" aria-selected="false" aria-controls="demo-panel" data-giro="tienda" tabindex="-1">Tienda</button>
+          </div>
+          <span class="label">Demo en vivo</span>
+        </div>
+
+        <div class="demo-body" id="demo-panel" role="tabpanel" aria-labelledby="tab-restaurante">
+          <div>
+            <div class="label col-label">Tu celular</div>
+            <div class="phone">
+              <div class="phone-top mono"><span>Inventario</span><span id="clock">13:42</span></div>
+              <div class="phone-item">
+                <div class="phone-head">
+                  <img class="thumb" id="p-thumb" alt="" width="44" height="44">
+                  <div class="phone-id">
+                    <span class="phone-name" id="p-name">Tacos al pastor</span>
+                    <span class="phone-sub mono" id="p-sku">MENÚ · 07</span>
+                  </div>
+                </div>
+                <div class="sizes" id="p-sizes" role="group" aria-label="Talla que vas a contar" hidden></div>
+                <div class="stepper">
+                  <button class="step step--sell" id="sell" aria-label="Vendí uno: restar una unidad">
+                    <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9h12" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>
+                  </button>
+                  <div class="count" aria-live="polite"><span class="num" id="p-count">9</span><small id="p-unit">órdenes</small></div>
+                  <button class="step" id="restock" aria-label="Llegó uno: sumar una unidad">
+                    <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9h12M9 3v12" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>
+                  </button>
+                </div>
+              </div>
+              <input class="sr-only" type="file" id="p-photo" accept="image/*">
+              <label class="upload" for="p-photo">
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6.5h3l1.5-2h5L14 6.5h3v9H3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="10" cy="11" r="2.8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+                <span id="p-photo-label">Agregar foto</span>
+              </label>
+              <ul class="others" id="p-others" aria-label="Otros productos"></ul>
+              <span class="phone-hint mono">Un toque por venta. Nada más.</span>
+            </div>
+          </div>
+
+          <div class="wire" aria-hidden="true"><span class="packet" id="packet"></span></div>
+
+          <div class="storefront">
+            <div class="label col-label">Lo que ve tu cliente</div>
+            <article class="card" id="card">
+              <div class="viewer" id="viewer" role="group" aria-roledescription="galería" tabindex="0" aria-label="Producto">
+                <div class="viewer-qty" aria-hidden="true"><b class="roll" id="v-qty">9</b><span id="v-unit">órdenes</span></div>
+                <img class="slide" id="v-img" alt="">
+                <button class="g-arrow g-prev" id="g-prev" type="button" aria-label="Foto anterior"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <button class="g-arrow g-next" id="g-next" type="button" aria-label="Foto siguiente"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <span class="viewer-hint mono" aria-hidden="true"><svg viewBox="0 0 20 12"><path d="M5 2 1 6l4 4M15 2l4 4-4 4M1 6h18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Arrastra para girar</span>
+              </div>
+              <div class="soldout" id="c-soldout" aria-hidden="true"><span id="c-soldout-t">SOLD OUT</span><small>Se vendió todo</small></div>
+              <div class="gallery-bar">
+                <div class="g-dots" id="g-dots" role="group" aria-label="Fotos del producto"></div>
+                <div class="seg" id="g-fondo" role="group" aria-label="Fondo de la foto">
+                  <button type="button" data-fondo="sin" aria-pressed="true">Sin fondo</button>
+                  <button type="button" data-fondo="estudio" aria-pressed="false">Estudio</button>
+                  <button type="button" data-fondo="original" aria-pressed="false">Original</button>
+                </div>
+              </div>
+              <p class="g-note" id="g-note" aria-live="polite"></p>
+              <div class="card-meta mono"><span id="c-sku">MENÚ · 07</span><span id="c-shop">Taquería La Güera</span></div>
+              <h3 class="card-name"><span class="strike" id="c-name">Tacos al pastor</span></h3>
+              <p class="card-desc" id="c-desc">Orden de 5, tortilla de maíz hecha a mano.</p>
+              <div class="sizes" id="c-sizes" role="group" aria-label="Tallas disponibles" hidden></div>
+              <div class="units" id="c-units" aria-hidden="true"></div>
+              <div class="status">
+                <span class="chip" id="c-chip" data-state="ok"><i aria-hidden="true"></i><span id="c-status" class="roll">Quedan 9 órdenes</span></span>
+                <span class="stamp mono" id="c-stamp">Actualizado hace 12 s</span>
+              </div>
+              <div class="card-row">
+                <span class="price"><span class="strike" id="c-price">$95</span><small>MXN</small></span>
+              </div>
+              <a class="btn" id="c-cta" href="#pide-tu-pagina">Pedir por WhatsApp</a>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="para-quien" aria-labelledby="h-para-quien">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="h2" id="h-para-quien">Para quien vende lo que tiene hoy.</h2>
+        <p>Si tu inventario cambia cada día, tu página también. Archival se adapta a cómo vende tu giro.</p>
+      </div>
+      <ul class="giros">
+        <li class="giro">
+          <h3>Restaurantes y cocinas</h3>
+          <p>Tu menú del día con lo que de verdad queda. Cuando algo se acaba, se marca en tu página sin que nadie pregunte.</p>
+          <span class="mono">Pastor · se acabó 21:40</span>
+        </li>
+        <li class="giro">
+          <h3>Reventa y drops</h3>
+          <p>Cada pieza con fotos, talla y estado. Cuando se aparta, tu página lo dice antes de que te llegue el mensaje.</p>
+          <span class="mono">Talla 27 MX · 1 par</span>
+        </li>
+        <li class="giro">
+          <h3>Tiendas y marcas</h3>
+          <p>Tu catálogo completo con existencias reales y cada producto bien explicado, listo para mandar por WhatsApp o Instagram.</p>
+          <span class="mono">AirPods Pro · 8 pzas</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" id="como-funciona" aria-labelledby="h-como">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="h2" id="h-como">Tres pasos y ya vendes.</h2>
+        <p>Tú no tocas código ni diseño. Solo cuentas lo que tienes.</p>
+      </div>
+      <ol class="steps">
+        <li>
+          <h3>Armamos tu página</h3>
+          <p>Nos pasas tus productos y fotos. Escribimos cada ficha para que se entienda y se antoje.</p>
+        </li>
+        <li>
+          <h3>Cuentas desde el celular</h3>
+          <p>Cada venta es un toque. Subir un producto nuevo te toma un minuto.</p>
+        </li>
+        <li>
+          <h3>Compartes un solo link</h3>
+          <p>Va en tu bio y en tu WhatsApp. Tus clientes ven lo que hay antes de escribirte.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section" aria-label="La pregunta de siempre">
+    <div class="wrap question">
+      <div class="bubble">¿Todavía tienes la talla 27?<span class="mono">11:58 p. m.</span></div>
+      <p class="answer">Esa pregunta ya la contesta <mark>tu página.</mark></p>
+    </div>
+  </section>
+
+  <section class="section band" id="pide-tu-pagina" aria-labelledby="h-cta">
+    <div class="wrap cta">
+      <div>
+        <h2 class="h2" id="h-cta">Tu inventario, a la vista.</h2>
+        <p class="cta-copy">Déjanos tus datos y te escribimos por WhatsApp para ver qué vendes y cómo lo quieres mostrar.</p>
+        <div class="cta-alt"><button class="btn btn--ghost btn--pz" type="button" data-personaliza><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M9 21V9" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="13" width="4" height="4" fill="currentColor"/></svg>Mejor la armo yo</button><small>Elige colores, estilo y productos, y mándanos tu vista previa.</small></div>
+      </div>
+      <!-- TODO: conectar el envío (WhatsApp Business API, Formspree o backend propio). Hoy solo valida y muestra la confirmación. -->
+      <form class="form" id="lead" novalidate>
+        <div class="field">
+          <label for="f-negocio">Nombre del negocio</label>
+          <input id="f-negocio" name="negocio" autocomplete="organization" required placeholder="Taquería La Güera">
+        </div>
+        <div class="field">
+          <label for="f-giro">Qué vendes</label>
+          <select id="f-giro" name="giro">
+            <option>Restaurante o cocina</option>
+            <option>Reventa (tenis, ropa, coleccionables)</option>
+            <option>Tienda o marca propia</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-wa">WhatsApp</label>
+          <input id="f-wa" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" required placeholder="55 1234 5678" aria-describedby="f-wa-err">
+          <span class="error" id="f-wa-err" role="alert"></span>
+        </div>
+        <button class="btn" type="submit">Quiero mi página</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer class="foot-band"><div class="wrap foot">
+  <a class="brand" href="#" aria-label="Archival, volver arriba"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><path class="legs" d="M2 62L25 2H39L62 62H48L32 20L16 62Z"/><rect class="sq" x="27.5" y="43" width="9" height="9"/></svg><span class="wordmark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -798 4824 818" aria-hidden="true" focusable="false"><use href="#wordmark"/></svg></span></a>
+  <span class="mono">Si lo tienes, se ve. · Hecho en México · 2026</span>
+  <p class="credits">Fotos de ejemplo, modificadas (fondo quitado y convertidas a 3D): tacos por William Neuheisel (<a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>, <a href="https://commons.wikimedia.org/w/index.php?curid=32052588">fuente</a>); AirPods Pro por Hajoon0102 (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>, <a href="https://commons.wikimedia.org/w/index.php?curid=131686950">fuente</a>; el recorte y el modelo 3D se comparten con la misma licencia).</p>
+</div></footer>
+
+<script>
+(() => {
+  const GIROS = {
+    restaurante: { sku: "MENÚ · 07", shop: "Taquería La Güera", name: "Tacos al pastor", desc: "Orden de 5, tortilla de maíz hecha a mano.", price: "$95", unit: ["orden", "órdenes"], stock: 9, max: 12, low: 3, out: "Se acabó por hoy", sello: ["SE ACABÓ", "Mañana hay más"], cta: "Pedir por WhatsApp", others: [["Suadero", "14"], ["Gringa de pastor", "6"]] },
+    reventa:     { sku: "DROP 14 · #031", shop: "Kicks Norte", name: "Jordan 1 High OG Royal Reimagined", desc: "Nuevos en caja, con ticket de compra. Elige tu talla.", price: "$5,200", unit: ["par", "pares"], max: 4, low: 1, out: "Vendido", sello: ["SOLD OUT", "Se vendieron todas las tallas"], cta: "Apartar por WhatsApp", others: [["Dunk Low Panda · 26.5", "1"], ["New Balance 550 · 28", "3"]],
+                   tallas: [["25", 0], ["26", 1], ["26.5", 0], ["27", 1], ["28", 2], ["29", 0]] },
+    tienda:      { sku: "SKU APP-2", shop: "Punto Tech", name: "AirPods Pro (2.ª gen.)", desc: "Con estuche de carga. Nuevos, sellados y con garantía de 1 año.", price: "$4,299", unit: ["pieza", "piezas"], stock: 8, max: 12, low: 3, out: "Agotado", sello: ["AGOTADO", "Ya no quedan piezas"], cta: "Comprar por WhatsApp", others: [["AirPods 4", "3"], ["Funda de silicón", "12"]] },
+  };
+  const $ = (id) => document.getElementById(id);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // El video arranca solo (sin sonido) la primera vez que se ve a la mitad; con movimiento reducido espera a que lo toquen
+  const film = document.getElementById("film");
+  if (film && !reduce) new IntersectionObserver((es, io) => {
+    if (es[0].isIntersecting) { film.play().catch(() => {}); io.disconnect(); }
+  }, { threshold: 0.5 }).observe(film);
+  let giro = "restaurante";
+  // Existencias: por talla cuando el giro las tiene, si no un solo número
+  const stock = Object.fromEntries(Object.entries(GIROS).map(([k, g]) => [k, g.tallas ? g.tallas.map((t) => t[1]) : g.stock]));
+  const talla = Object.fromEntries(Object.entries(GIROS).map(([k, g]) => [k, g.tallas ? Math.max(0, g.tallas.findIndex((t) => t[1] > 0)) : -1]));
+  const total = (k = giro) => (Array.isArray(stock[k]) ? stock[k].reduce((a, b) => a + b, 0) : stock[k]);
+  const actual = (k = giro) => (Array.isArray(stock[k]) ? stock[k][talla[k]] : stock[k]); // lo que cuenta el stepper
+  let lastUpdate = Date.now() - 12000;
+
+  // Galería del producto: el 3D (si hay modelo) y hasta 5 fotos. Las fotos se ven quietas, sin girar.
+  const MAX_FOTOS = 5;
+  const MODELOS = { reventa: { url: "modelos/jordan-1-royal.glb" }, tienda: { url: "modelos/airpods-pro.glb", revelar: true } };
+  const FOTOS = { restaurante: "fotos/tacos-al-pastor.webp", reventa: "fotos/jordan-1-royal.webp", tienda: "fotos/airpods-pro.webp" };
+  // Cada foto guarda su versión sin fondo y, si la subió el dueño, la original con fondo
+  const slides = Object.fromEntries(Object.keys(GIROS).map((k) => [k, [...(MODELOS[k] ? [{ tipo: "3d" }] : []), { tipo: "foto", sin: FOTOS[k], original: null }]]));
+  const vista = Object.fromEntries(Object.keys(GIROS).map((k) => [k, { i: 0, fondo: "sin" }]));
+  let viewer = null;
+  const fotosDe = (k = giro) => slides[k].filter((s) => s.tipo === "foto");
+
+  function mostrarSlide(dir = 0) {
+    const v = vista[giro], s = slides[giro][v.i], el = $("viewer"), img = $("v-img");
+    const es3d = s.tipo === "3d";
+    el.classList.toggle("is-2d", !es3d);
+    el.setAttribute("aria-label", es3d ? "Producto en 3D. Arrastra para girarlo." : `Foto ${fotosDe().indexOf(s) + 1} de ${fotosDe().length} del producto`);
+    // Fondo: sin fondo (recorte), estudio (recorte sobre fondo de estudio) u original (la foto tal cual)
+    const fondo = !es3d && v.fondo === "original" && !s.original ? "sin" : v.fondo;
+    el.classList.toggle("estudio", !es3d && fondo === "estudio");
+    img.classList.toggle("fondo-original", fondo === "original");
+    if (!es3d) {
+      const src = fondo === "original" ? s.original : s.sin || s.original;
+      if (img.getAttribute("src") !== src) img.src = src;
+      if (dir && !reduce) img.animate([{ opacity: 0, transform: `translateX(${dir * 28}px) scale(.98)` }, { opacity: 1, transform: "none" }], { duration: 320, easing: EASE_OUT });
+    } else if (viewer && MODELOS[giro]) {
+      const g = giro;
+      viewer.setModel(MODELOS[g].url, MODELOS[g]).then((ok) => { if (!ok && giro === g) { vista[g].i = slides[g].indexOf(fotosDe(g)[0]); mostrarSlide(); } });
+    }
+    // Controles: flechas solo si hay más de una vista; "Original" solo si esa foto tiene original
+    const n = slides[giro].length;
+    $("g-prev").hidden = $("g-next").hidden = n < 2;
+    const dots = $("g-dots"), dotFoco = [...dots.children].indexOf(document.activeElement);
+    dots.innerHTML = "";
+    slides[giro].forEach((x, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      if (x.tipo === "3d") { b.className = "g-3d"; b.textContent = "3D"; b.setAttribute("aria-label", "Ver en 3D"); }
+      else b.setAttribute("aria-label", `Foto ${fotosDe().indexOf(x) + 1}`);
+      b.setAttribute("aria-current", String(i === v.i));
+      b.addEventListener("click", () => irA(i));
+      dots.appendChild(b);
+    });
+    dots.children[dotFoco]?.focus(); // redibujar no le quita el foco a quien navega con teclado
+    const seg = $("g-fondo");
+    seg.hidden = es3d;
+    seg.querySelectorAll("button").forEach((b) => {
+      b.setAttribute("aria-pressed", String(b.dataset.fondo === fondo));
+      if (b.dataset.fondo === "original") { b.disabled = !s.original; b.title = s.original ? "" : "Sube tu foto para ver la original"; }
+      if (b.dataset.fondo === "sin") { b.disabled = !s.sin; b.title = s.sin ? "" : "Esta foto tiene fondo con textura: en tu página la recortamos nosotros"; }
+    });
+    const cuantas = fotosDe().length;
+    $("p-photo-label").textContent = cuantas >= MAX_FOTOS ? `Ya tienes ${MAX_FOTOS} fotos (máximo)` : `Agregar foto · ${cuantas} de ${MAX_FOTOS}`;
+  }
+  function irA(i) {
+    const n = slides[giro].length, v = vista[giro];
+    const next = ((i % n) + n) % n;
+    if (next === v.i) return;
+    const dir = next > v.i ? 1 : -1;
+    v.i = next; touched = true; mostrarSlide(dir);
+  }
+  $("g-prev").addEventListener("click", () => irA(vista[giro].i - 1));
+  $("g-next").addEventListener("click", () => irA(vista[giro].i + 1));
+  $("viewer").addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") { e.preventDefault(); irA(vista[giro].i - 1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); irA(vista[giro].i + 1); }
+  });
+  $("g-fondo").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b || b.disabled) return;
+    vista[giro].fondo = b.dataset.fondo; touched = true; mostrarSlide();
+  });
+
+  $("p-thumb").src = FOTOS[giro];
+  import("./vitrina3d.js")
+    .then(({ createVitrina }) => {
+      viewer = createVitrina($("viewer"), { onError: (err) => console.warn("Vitrina 3D:", err) });
+      mostrarSlide();
+    })
+    .catch(() => {
+      // Sin 3D: la galería se queda solo con fotos
+      for (const k of Object.keys(slides)) slides[k] = slides[k].filter((s) => s.tipo !== "3d");
+      Object.values(vista).forEach((v) => (v.i = 0));
+      mostrarSlide();
+    });
+  mostrarSlide();
+
+  const plural = (n, g) => (n === 1 ? g.unit[0] : g.unit[1]);
+  function statusFor(n, g) {
+    if (g.tallas) {
+      const t = g.tallas[talla[giro]][0];
+      if (total() === 0) return { state: "out", text: "Se vendieron todas las tallas" };
+      if (n === 0) return { state: "out", text: `Talla ${t}: vendida` };
+      return { state: n <= g.low ? "low" : "ok", text: `Talla ${t}: ${n === 1 ? `queda 1 ${g.unit[0]}` : `quedan ${n} ${g.unit[1]}`}` };
+    }
+    if (n === 0) return { state: "out", text: g.out };
+    if (n <= g.low) return { state: "low", text: n === 1 ? `Queda 1 ${g.unit[0]}` : `Quedan ${n} ${g.unit[1]}` };
+    return { state: "ok", text: `Hay ${n} ${g.unit[1]}` };
+  }
+  const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)", EASE_IN = "cubic-bezier(0.55, 0, 1, 0.45)";
+  let touched = false;
+
+  // Odómetro: el valor viejo sale y el nuevo entra en la dirección del cambio (venta = baja).
+  function roll(el, text, dir) {
+    if (reduce || el.textContent === text) { el.textContent = text; return; }
+    el.getAnimations().forEach((a) => a.cancel());
+    const d = dir < 0 ? 1 : -1;
+    el.animate([{ transform: "none", opacity: 1 }, { transform: `translateY(${-45 * d}%)`, opacity: 0 }], { duration: 110, easing: EASE_IN })
+      .finished.then(() => {
+        el.textContent = text;
+        el.animate([{ transform: `translateY(${45 * d}%)`, opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 220, easing: EASE_OUT });
+      }).catch(() => { el.textContent = text; });
+  }
+  // Re-dispara una animación CSS de una clase.
+  function replay(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+  // Entrada escalonada de un grupo (cambio de giro).
+  function enter(els, step = 32) {
+    if (reduce) return;
+    els.forEach((el, i) => el.animate([{ transform: "translateY(8px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 300, delay: i * step, easing: EASE_OUT, fill: "backwards" }));
+  }
+
+  // Botones de talla, iguales en el celular del dueño y en la página del cliente
+  function pintaTallas(box, cambio) {
+    const g = GIROS[giro];
+    box.hidden = !g.tallas;
+    if (!g.tallas) { box.innerHTML = ""; return; }
+    const foco = box.contains(document.activeElement);
+    box.innerHTML = "";
+    g.tallas.forEach(([t], i) => {
+      const q = stock[giro][i];
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "size" + (q === 0 ? " is-empty" : "") + (i === cambio ? " bump" : "");
+      b.setAttribute("aria-pressed", String(i === talla[giro]));
+      b.setAttribute("aria-label", `Talla ${t}: ${q === 0 ? "vendida" : `${q} ${plural(q, g)}`}`);
+      b.innerHTML = `<b>${t}</b><small>${q === 0 ? "—" : `${q} ${q === 1 ? "par" : "pares"}`}</small>`;
+      b.addEventListener("click", () => { touched = true; talla[giro] = i; render(); });
+      box.appendChild(b);
+    });
+    if (foco) box.children[talla[giro]]?.focus();
+  }
+
+  function render({ soldIndex = -1, addedIndex = -1, dir = 0, swap = false, cambio = -1 } = {}) {
+    const g = GIROS[giro], n = actual(), todo = total();
+    $("p-name").textContent = g.name; $("p-sku").textContent = g.tallas ? `${g.sku} · Talla ${g.tallas[talla[giro]][0]}` : g.sku;
+    if (!dir) $("p-count").textContent = n;
+    $("p-unit").textContent = plural(n, g);
+    const vq = g.tallas ? todo : n;
+    if (dir) roll($("v-qty"), String(vq), dir); else $("v-qty").textContent = vq;
+    $("v-unit").textContent = g.tallas ? `${plural(vq, g)} en total` : plural(vq, g);
+    pintaTallas($("p-sizes"), cambio);
+    pintaTallas($("c-sizes"), cambio);
+    $("p-others").innerHTML = "";
+    for (const [name, qty] of g.others) { const li = document.createElement("li"); li.append(Object.assign(document.createElement("span"), { textContent: name }), Object.assign(document.createElement("span"), { textContent: qty })); $("p-others").appendChild(li); }
+    $("c-sku").textContent = g.sku; $("c-shop").textContent = g.shop;
+    $("c-name").textContent = g.name; $("c-desc").textContent = g.desc;
+    $("c-price").textContent = g.price;
+    const s = statusFor(n, g);
+    $("c-chip").dataset.state = s.state;
+    if (dir) roll($("c-status"), s.text, dir); else $("c-status").textContent = s.text;
+    // Agotado: la talla elegida tacha el nombre; si ya no queda nada de nada, cae el sello
+    const card = $("card"), seAcabo = todo === 0;
+    card.classList.toggle("is-out", n === 0);
+    $("c-soldout-t").textContent = g.sello[0];
+    $("c-soldout").querySelector("small").textContent = g.sello[1];
+    if (seAcabo && !card.classList.contains("is-soldout") && dir) setTimeout(() => card.classList.add("is-soldout"), reduce ? 0 : 140);
+    else card.classList.toggle("is-soldout", seAcabo);
+    $("c-soldout").setAttribute("aria-hidden", String(!seAcabo));
+    const cta = $("c-cta");
+    cta.textContent = n === 0 ? "Avísame cuando haya" : g.tallas ? `${g.cta} · Talla ${g.tallas[talla[giro]][0]}` : g.cta;
+    cta.classList.toggle("btn--ghost", n === 0);
+    const units = $("c-units");
+    units.innerHTML = "";
+    for (let i = 0; i < g.max; i++) {
+      const u = document.createElement("span");
+      u.className = "unit" + (i < n ? " on" : "") + (i === soldIndex ? " just-sold" : "") + (i === addedIndex ? " just-added" : "");
+      units.appendChild(u);
+    }
+    $("sell").disabled = n === 0; $("restock").disabled = n >= g.max;
+    if (swap) {
+      const c = $("card");
+      enter([...c.querySelectorAll(".card-meta, .card-name, .card-desc, .sizes, .status, .card-row, .btn")]);
+      enter([$("p-name"), $("p-sku"), ...$("p-sizes").children, ...$("p-others").children], 40);
+      if (!reduce) [...units.children].forEach((u, i) => u.animate([{ transform: "scale(0.6)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 360, delay: 120 + i * 18, easing: EASE_OUT, fill: "backwards" }));
+    }
+    stamp();
+  }
+
+  function stamp() {
+    const s = Math.max(0, Math.round((Date.now() - lastUpdate) / 1000));
+    $("c-stamp").textContent = s < 2 ? "Actualizado ahora" : s < 60 ? `Actualizado hace ${s} s` : `Actualizado hace ${Math.floor(s / 60)} min`;
+  }
+  function clock() { const d = new Date(); $("clock").textContent = d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: false }); }
+
+  function sync(delta) {
+    const g = GIROS[giro], before = actual();
+    const next = Math.min(g.max, Math.max(0, before + delta));
+    if (next === before) return;
+    const t = talla[giro];
+    if (g.tallas) stock[giro][t] = next; else stock[giro] = next;
+    // 1) el celular cuenta, 2) el punto viaja, 3) la página lo recibe
+    roll($("p-count"), String(next), delta);
+    $("p-unit").textContent = plural(next, g);
+    const apply = () => {
+      lastUpdate = Date.now();
+      render({ soldIndex: delta < 0 ? next : -1, addedIndex: delta > 0 ? next - 1 : -1, dir: delta, cambio: g.tallas ? t : -1 });
+      if (!reduce) replay($("card"), "received");
+    };
+    if (reduce) return apply();
+    replay($("packet"), "go");
+    setTimeout(apply, 300);
+  }
+
+  $("sell").addEventListener("click", () => { touched = true; sync(-1); });
+
+  // El dueño agrega una foto (hasta 5): se le quita el fondo si es liso y aparece en la galería del cliente.
+  $("p-photo").addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { $("p-photo-label").textContent = "Ese archivo no es una imagen. Sube una foto JPG o PNG."; return; }
+    const g = giro;
+    if (fotosDe(g).length >= MAX_FOTOS) { $("g-note").textContent = `Máximo ${MAX_FOTOS} fotos por producto. Quita una para agregar otra.`; return; }
+    touched = true;
+    $("viewer").classList.add("is-loading");
+    try {
+      const { quitarFondo } = await import("./recorte.js");
+      const r = await quitarFondo(file), original = r.original;
+      const nueva = { tipo: "foto", sin: r.url, original };
+      if (!reduce) replay($("packet"), "go");
+      await new Promise((ok) => setTimeout(ok, reduce ? 0 : 300));
+      if (fotosDe(g).length >= MAX_FOTOS) return; // llegaron varias a la vez mientras se recortaban
+      slides[g].push(nueva);
+      if (giro !== g) return; // cambiaste de pestaña: la foto ya quedó en su producto
+      vista[g].i = slides[g].length - 1;
+      if (!r.ok) vista[g].fondo = "original";
+      $("g-note").textContent = r.ok ? "" : "Esta foto tiene fondo con textura: se muestra original. En tu página real la recortamos nosotros.";
+      $("p-thumb").src = nueva.sin || original;
+      lastUpdate = Date.now(); stamp();
+      mostrarSlide(1);
+      if (!reduce) replay($("card"), "received");
+    } catch {
+      $("p-photo-label").textContent = "No pudimos leer esa imagen. Prueba con JPG o PNG.";
+    } finally {
+      $("viewer").classList.remove("is-loading");
+    }
+  });
+  $("restock").addEventListener("click", () => { touched = true; sync(1); });
+
+  const tabs = [...document.querySelectorAll(".tab")];
+  const ink = document.querySelector(".tab-ink");
+  // El indicador se desliza con transform: posición y ancho del tab activo.
+  function moveInk(t, instant) {
+    if (instant) ink.style.transition = "none";
+    ink.style.transform = `translateX(${t.offsetLeft}px) scaleX(${t.offsetWidth / 100})`;
+    if (instant) { void ink.offsetWidth; ink.style.transition = ""; }
+  }
+  function selectTab(t, focus) {
+    touched = true;
+    const same = t.dataset.giro === giro;
+    tabs.forEach((x) => { const on = x === t; x.setAttribute("aria-selected", on); x.tabIndex = on ? 0 : -1; });
+    $("demo-panel").setAttribute("aria-labelledby", t.id);
+    moveInk(t);
+    giro = t.dataset.giro;
+    if (!same) { $("g-note").textContent = ""; render({ swap: true }); mostrarSlide(); const f = fotosDe().at(-1); $("p-thumb").src = f.sin || f.original; }
+    if (focus) t.focus();
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => selectTab(t));
+    t.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      e.preventDefault();
+      selectTab(tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length], true);
+    });
+  });
+
+  // Inclinación 3D sutil de la ficha del cliente, solo con mouse y sin reduced-motion
+  // Con resorte: el valor real persigue al objetivo, así se puede interrumpir sin saltos.
+  const card = $("card");
+  if (!reduce && fine) {
+    const area = card.parentElement;
+    let tx = 0, ty = 0, cx = 0, cy = 0, vx = 0, vy = 0, raf = 0;
+    const tick = () => {
+      vx = (vx + (tx - cx) * 0.12) * 0.72; vy = (vy + (ty - cy) * 0.12) * 0.72;
+      cx += vx; cy += vy;
+      card.style.transform = `rotateY(${cx.toFixed(2)}deg) rotateX(${cy.toFixed(2)}deg)`;
+      raf = Math.abs(tx - cx) + Math.abs(ty - cy) + Math.abs(vx) + Math.abs(vy) > 0.01 ? requestAnimationFrame(tick) : 0;
+      if (!raf && !tx && !ty) card.style.transform = "";
+    };
+    const go = () => { if (!raf) raf = requestAnimationFrame(tick); };
+    area.addEventListener("pointermove", (e) => {
+      const r = card.getBoundingClientRect();
+      tx = ((e.clientX - r.left) / r.width - 0.5) * 8;
+      ty = -((e.clientY - r.top) / r.height - 0.5) * 8;
+      go();
+    });
+    area.addEventListener("pointerleave", () => { tx = 0; ty = 0; go(); });
+  }
+
+  // La demo se muestra sola una vez: si nadie la ha tocado, hace una venta para enseñar cómo funciona.
+  if (!reduce && "IntersectionObserver" in window) {
+    let timer = 0;
+    const io = new IntersectionObserver(([e]) => {
+      clearTimeout(timer);
+      if (!e.isIntersecting || touched) return;
+      timer = setTimeout(() => {
+        if (touched) return;
+        io.disconnect();
+        const b = $("sell");
+        b.classList.add("is-pressing");
+        setTimeout(() => { b.classList.remove("is-pressing"); sync(-1); }, 160);
+      }, 1700);
+    }, { threshold: 0.6 });
+    io.observe($("demo"));
+  }
+
+  // Formulario: abre WhatsApp de Archival con los datos ya escritos; el interesado solo da enviar.
+  const WHATSAPP_ARCHIVAL = document.querySelector('meta[name="archival-whatsapp"]').content.replace(/\D/g, ""); // vacío = el formulario avisa que aún no está conectado
+
+  // Personaliza tu página: el estudio se carga hasta que alguien lo abre
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-personaliza]");
+    if (!b) return;
+    const giro = tabs.find((t) => t.getAttribute("aria-selected") === "true")?.dataset.giro;
+    b.setAttribute("aria-busy", "true");
+    import("./personaliza.js").then((m) => m.abrir({ giro }))
+      .catch(() => { b.lastChild.textContent = "No cargó, toca de nuevo"; })
+      .finally(() => b.removeAttribute("aria-busy"));
+  });
+  if (location.hash === "#personaliza") import("./personaliza.js").then((m) => m.abrir());
+  const form = $("lead");
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const neg = $("f-negocio"), wa = $("f-wa"), err = $("f-wa-err");
+    const digits = wa.value.replace(/\D/g, "");
+    neg.setAttribute("aria-invalid", !neg.value.trim());
+    if (!neg.value.trim()) { neg.focus(); return; }
+    if (digits.length < 10) {
+      wa.setAttribute("aria-invalid", "true"); err.textContent = "Escribe tu número a 10 dígitos, por ejemplo 55 1234 5678."; wa.focus();
+      if (!reduce) wa.animate([{ transform: "none" }, { transform: "translateX(-6px)" }, { transform: "translateX(5px)" }, { transform: "translateX(-3px)" }, { transform: "none" }], { duration: 320, easing: "ease-out" });
+      return;
+    }
+    wa.setAttribute("aria-invalid", "false"); err.textContent = "";
+    if (!WHATSAPP_ARCHIVAL) { err.textContent = "Este formulario todavía no está conectado. Pronto podrás mandarnos tus datos desde aquí."; return; }
+    const nombre = neg.value.trim();
+    const texto = `Hola Archival, quiero mi página. Negocio: ${nombre}. Qué vendo: ${$("f-giro").value}. Mi WhatsApp: ${digits}.`;
+    window.open(`https://wa.me/52${WHATSAPP_ARCHIVAL}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
+    const box = document.createElement("div");
+    box.className = "done"; box.setAttribute("role", "status");
+    box.innerHTML = `<strong>Listo, ${nombre.replace(/[<>&"]/g, "")}.</strong><p>Se abrió WhatsApp con tus datos. Solo dale enviar y te contestamos para armar tu página.</p>`;
+    form.replaceWith(box);
+    if (!reduce) box.animate([{ transform: "translateY(10px) scale(0.98)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 320, easing: EASE_OUT });
+  });
+
+  render(); clock();
+  const placeInk = () => moveInk(tabs.find((t) => t.getAttribute("aria-selected") === "true"), true);
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { placeInk(); document.querySelector(".tabs").classList.add("ready"); });
+  addEventListener("resize", placeInk);
+  setInterval(() => { stamp(); clock(); }, 1000);
+})();
+</script>
+</body>
+</html>
