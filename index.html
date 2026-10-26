@@ -506,6 +506,36 @@ section { scroll-margin-top: 24px; }
 .foot .mark { width: 22px; height: 22px; }
 .credits { flex-basis: 100%; margin: 0; font-size: 0.75rem; color: var(--muted); }
 
+/* Después de probar la demo: invitación a armar la propia, con cuatro páginas de ejemplo en otros colores */
+.teaser { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 4vw, 56px); align-items: center; padding: clamp(24px, 3.5vw, 44px); border-radius: 16px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
+.teaser h2 { margin: 0; font-family: var(--display); font-stretch: 125%; font-weight: 850; font-size: clamp(2rem, 3.6vw, 3.25rem); line-height: 0.95; letter-spacing: -0.04em; text-wrap: balance; }
+.teaser h2 .live-dot { animation: blink 2.4s ease-in-out infinite; }
+.teaser p { margin: 16px 0 24px; color: var(--muted); max-width: 40ch; text-wrap: pretty; }
+.btn--lg { min-height: 52px; padding: 0 26px; font-size: 1rem; }
+.teaser-minis { display: flex; justify-content: center; gap: clamp(10px, 1.6vw, 20px); padding-block: 8px; }
+.mini { flex: 0 1 132px; aspect-ratio: 9 / 17; border-radius: 18px; padding: 10px 9px; background: var(--bg); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent), 0 24px 40px -24px rgba(15,18,32,.45); display: flex; flex-direction: column; gap: 7px; color: var(--ink); animation: flota 5s ease-in-out infinite; transition: transform 400ms var(--ease-out); }
+.mini:nth-child(2) { animation-delay: -1.2s; } .mini:nth-child(3) { animation-delay: -2.5s; } .mini:nth-child(4) { animation-delay: -3.7s; }
+.mini:nth-child(even) { margin-top: 26px; }
+.teaser:hover .mini { animation-play-state: paused; }
+.teaser:hover .mini:nth-child(1) { transform: rotate(-4deg) translateY(-6px); }
+.teaser:hover .mini:nth-child(2) { transform: rotate(-1.5deg) translateY(-10px); }
+.teaser:hover .mini:nth-child(3) { transform: rotate(1.5deg) translateY(-10px); }
+.teaser:hover .mini:nth-child(4) { transform: rotate(4deg) translateY(-6px); }
+@keyframes flota { 50% { transform: translateY(-8px); } }
+.mini i { display: block; font-style: normal; }
+.m-nav { display: flex; align-items: center; gap: 5px; font-size: 8px; font-weight: 700; white-space: nowrap; overflow: hidden; }
+.m-nav b { width: 12px; height: 12px; border-radius: 4px; background: var(--ac); flex: none; }
+.m-h { height: 9px; width: 88%; border-radius: 3px; background: var(--ink); margin-top: 6px; }
+.m-h2 { width: 60%; margin-top: 0; }
+.m-card { margin-top: auto; background: var(--sf); border-radius: 10px; padding: 6px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 10%, transparent); }
+.m-img { aspect-ratio: 1; border-radius: 7px; background: radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--ac) 45%, var(--sf)) 0 30%, color-mix(in srgb, var(--ink) 6%, var(--sf)) 31%); }
+.m-btn { height: 14px; border-radius: 5px; background: var(--ac); }
+@media (max-width: 960px) {
+  .teaser { grid-template-columns: minmax(0, 1fr); }
+  .mini:nth-child(4) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .mini { animation: none; } }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 960px) {
   .hero-grid, .section-head, .question, .cta { grid-template-columns: minmax(0, 1fr); }
@@ -691,6 +721,19 @@ section { scroll-margin-top: 24px; }
           </div>
         </div>
       </div>
+      <aside class="teaser" aria-labelledby="h-teaser">
+        <div class="teaser-copy">
+          <h2 id="h-teaser">Ahora arma la tuya<span class="live-dot" aria-hidden="true"></span></h2>
+          <p>Elige colores, estilo y tus productos. La ves en vivo en celular o computadora y nos la mandas por WhatsApp. Te toma un minuto.</p>
+          <button class="btn btn--pz btn--lg" type="button" data-personaliza><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M9 21V9" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="13" width="4" height="4" fill="currentColor"/></svg>Personaliza tu página</button>
+        </div>
+        <div class="teaser-minis" aria-hidden="true">
+          <span class="mini" style="--bg:#F2F4F8;--sf:#FFFFFF;--ink:#0F1220;--ac:#1E40FF"><i class="m-nav"><b></b>Kicks Norte</i><i class="m-h"></i><i class="m-h m-h2"></i><i class="m-card"><i class="m-img"></i><i class="m-btn"></i></i></span>
+          <span class="mini" style="--bg:#0B0D14;--sf:#151925;--ink:#F2F4F8;--ac:#3D63FF"><i class="m-nav"><b></b>Punto Tech</i><i class="m-h"></i><i class="m-h m-h2"></i><i class="m-card"><i class="m-img"></i><i class="m-btn"></i></i></span>
+          <span class="mini" style="--bg:#F6EEE6;--sf:#FFFFFF;--ink:#2A1D16;--ac:#C2532B"><i class="m-nav"><b></b>La Güera</i><i class="m-h"></i><i class="m-h m-h2"></i><i class="m-card"><i class="m-img"></i><i class="m-btn"></i></i></span>
+          <span class="mini" style="--bg:#EDF1EB;--sf:#FFFFFF;--ink:#16241B;--ac:#24563F"><i class="m-nav"><b></b>Vivero Sol</i><i class="m-h"></i><i class="m-h m-h2"></i><i class="m-card"><i class="m-img"></i><i class="m-btn"></i></i></span>
+        </div>
+      </aside>
     </div>
   </section>
 
