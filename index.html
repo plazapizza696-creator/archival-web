@@ -122,6 +122,7 @@ button, input, select { font: inherit; color: inherit; }
 .btn--pz { gap: 9px; }
 .btn--pz svg { width: 18px; height: 18px; flex: none; transition: transform 300ms var(--ease-out); }
 .btn--pz:hover svg { transform: rotate(-8deg) scale(1.08); }
+.btn--pz.is-abriendo svg { transform: rotate(90deg) scale(1.2); }
 
 /* ---------- Hero ---------- */
 .hero { padding-block: clamp(32px, 7vw, 88px) clamp(56px, 8vw, 112px); }
@@ -574,7 +575,7 @@ section { scroll-margin-top: 24px; }
   <nav class="nav" aria-label="Principal">
     <a href="#para-quien">Para quién</a>
     <a href="#como-funciona">Cómo funciona</a>
-    <a class="btn btn--sm" href="#pide-tu-pagina" data-personaliza>Quiero mi página</a>
+    <a class="btn btn--sm" href="#pide-tu-pagina" data-personaliza>Personaliza tu página</a>
   </nav>
 </header>
 
@@ -593,10 +594,10 @@ section { scroll-margin-top: 24px; }
       <div>
         <p class="lead">Archival le da a tu negocio una página profesional: <strong>tus productos en 3D, girando, con la cantidad exacta que tienes.</strong> Cambias una existencia en tu celular y tus clientes la ven al momento.</p>
         <div class="hero-actions">
-          <a class="btn" href="#pide-tu-pagina" data-personaliza>Quiero mi página</a>
-          <a class="btn btn--ghost" href="#pide-tu-pagina">Prefiero que me escriban</a>
+          <button class="btn btn--pz" type="button" data-personaliza><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h18M9 21V9" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="13" width="4" height="4" fill="currentColor"/></svg>Personaliza tu página</button>
+          <a class="btn btn--ghost" href="#pide-tu-pagina">Quiero mi página</a>
         </div>
-        <p class="hero-note mono"><span class="pulse" aria-hidden="true"></span>Prueba la demo: sube una foto o toca el botón azul.</p>
+        <p class="hero-note mono"><span class="pulse" aria-hidden="true"></span>Prueba la demo: sube una foto o vende una pieza desde el celular.</p>
       </div>
 
       <div class="demo" id="demo">
@@ -1125,12 +1126,16 @@ section { scroll-margin-top: 24px; }
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-personaliza]");
     if (!b) return;
-    e.preventDefault(); // los enlaces "Quiero mi página" abren el estudio; sin JS bajan al formulario
+    e.preventDefault(); // el enlace del menú abre el estudio; sin JS baja al formulario
     const giro = tabs.find((t) => t.getAttribute("aria-selected") === "true")?.dataset.giro;
+    // El estudio sale del botón que tocaste (con teclado, desde su centro)
+    const r = b.getBoundingClientRect();
+    const origen = e.detail ? { x: e.clientX, y: e.clientY } : { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     b.setAttribute("aria-busy", "true");
-    import("./personaliza.js").then((m) => m.abrir({ giro }))
+    b.classList.add("is-abriendo");
+    import("./personaliza.js").then((m) => m.abrir({ giro, origen }))
       .catch(() => { b.lastChild.textContent = "No cargó, toca de nuevo"; })
-      .finally(() => b.removeAttribute("aria-busy"));
+      .finally(() => { b.removeAttribute("aria-busy"); b.classList.remove("is-abriendo"); });
   });
   if (location.hash === "#personaliza") import("./personaliza.js").then((m) => m.abrir());
   const form = $("lead");

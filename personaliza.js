@@ -64,13 +64,45 @@ function cargar() {
 }
 
 /* ---------- Armado del estudio ---------- */
-export async function abrir({ giro } = {}) {
+export async function abrir({ giro, origen } = {}) {
+  const ola = origen && !reduce ? estallido(origen) : null; // arranca ya, mientras carga el estudio
   if (!dlg) await construir();
   S = S || cargar() || estadoInicial(giro === "restaurante" ? "comida" : giro || "reventa");
   pintarTodo();
+  if (ola) await ola.listo;
+  dlg.classList.toggle("con-origen", !!ola);
   if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
   dlg.focus(); // el foco queda en el estudio, no salta al botón Salir
   document.documentElement.style.overflow = "hidden";
+  if (ola) entrada(ola);
+}
+
+// Un círculo azul sale del botón y llena la pantalla; en medio aparece la A de Archival
+const ENTRA = "cubic-bezier(0.77, 0, 0.175, 1)", SALE = "cubic-bezier(0.23, 1, 0.32, 1)";
+function estallido({ x, y }) {
+  const R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  const capa = document.createElement("div");
+  capa.setAttribute("aria-hidden", "true");
+  capa.style.cssText = "position:fixed;inset:0;z-index:2147483000;background:#1E40FF;display:grid;place-items:center;pointer-events:none";
+  capa.innerHTML = `<svg viewBox="0 0 64 64" width="72" height="72"><path fill="#fff" d="M2 62L25 2H39L62 62H48L32 20L16 62Z"/><rect fill="#0F1220" x="27.5" y="43" width="9" height="9"/></svg>`;
+  document.body.appendChild(capa);
+  const ola = capa.animate([{ clipPath: `circle(0px at ${x}px ${y}px)` }, { clipPath: `circle(${R}px at ${x}px ${y}px)` }], { duration: 480, easing: ENTRA, fill: "forwards" });
+  const [a, cuadro] = capa.querySelectorAll("path, rect");
+  a.animate([{ transform: "translateY(14px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 340, delay: 200, easing: SALE, fill: "both" });
+  cuadro.style.transformOrigin = "32px 47.5px";
+  cuadro.animate([{ transform: "translateY(-40px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 360, delay: 320, easing: "cubic-bezier(0.34, 1.56, 0.64, 1)", fill: "both" });
+  return { capa, listo: ola.finished.then(() => new Promise((ok) => setTimeout(ok, 220))) };
+}
+// El estudio se abre desde el centro (donde quedó la A) y sus partes llegan en escalera
+function entrada({ capa }) {
+  const R = Math.hypot(innerWidth, innerHeight) / 2;
+  const abre = dlg.animate([{ clipPath: `circle(0px at 50% 50%)` }, { clipPath: `circle(${R}px at 50% 50%)` }], { duration: 520, easing: ENTRA });
+  capa.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, delay: 380, fill: "forwards" }).finished.then(() => capa.remove());
+  abre.finished.finally(() => capa.isConnected && setTimeout(() => capa.remove(), 400));
+  const partes = [$(".pz-bar"), ...dlg.querySelectorAll(".pz-sec"), $(".pz-send")].filter((el) => el.getBoundingClientRect().top < innerHeight);
+  partes.forEach((el, i) => el.animate([{ transform: "translateY(18px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 460, delay: 200 + i * 50, easing: SALE, fill: "backwards" }));
+  $("#pz-device").animate([{ transform: "translateY(40px) scale(0.94)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 700, delay: 300, easing: "cubic-bezier(0.34, 1.3, 0.64, 1)", fill: "backwards" });
+  $(".pz-tools").animate([{ opacity: 0, translate: "-50% 12px" }, { opacity: 1, translate: "-50% 0" }], { duration: 400, delay: 620, easing: SALE, fill: "backwards" });
 }
 
 async function construir() {

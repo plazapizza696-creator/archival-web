@@ -10,6 +10,8 @@
 .pz:not([open]) { display: none; }
 .pz::backdrop { background: rgba(5, 7, 12, .6); }
 .pz[open] { animation: pz-in 420ms var(--pz-ease); }
+.pz.con-origen[open] { animation: none; }
+.pz.con-origen::backdrop { background: transparent; }
 @keyframes pz-in { from { opacity: 0; transform: translateY(16px) scale(.985); } }
 .pz *, .pz *::before, .pz *::after { box-sizing: border-box; }
 .pz button { font: inherit; color: inherit; }
