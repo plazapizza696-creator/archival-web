@@ -96,7 +96,9 @@ export async function quitarFondo(input) {
   const p = prepare(src);
   const orig = document.createElement("canvas");
   orig.width = p.W; orig.height = p.H;
-  orig.getContext("2d").drawImage(src, 0, 0, p.W, p.H);
+  const go = orig.getContext("2d");
+  go.fillStyle = "#FFFFFF"; go.fillRect(0, 0, p.W, p.H); // un PNG con transparencia no sale negro al guardarse como JPEG
+  go.drawImage(src, 0, 0, p.W, p.H);
   const original = await aURL(orig, "image/jpeg", 0.88);
   if (!p.cutout) return { ok: false, url: null, original };
   const d = p.mask;

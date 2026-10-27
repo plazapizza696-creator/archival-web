@@ -168,7 +168,7 @@ textarea.pz-in { resize: vertical; min-height: 64px; }
 @keyframes pz-wipe { from { clip-path: circle(0 at var(--wx, 0%) var(--wy, 50%)); } to { clip-path: circle(150% at var(--wx, 0%) var(--wy, 50%)); } }
 
 /* Resumen y envío */
-.pz-sheet { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(5,7,12,.6); backdrop-filter: blur(6px); padding: 20px; animation: pz-fade 240ms ease; }
+.pz-sheet { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(5,7,12,.6); backdrop-filter: blur(6px); padding: 20px; animation: pz-fade 240ms ease; }
 .pz-sheet[hidden] { display: none; }
 @keyframes pz-fade { from { opacity: 0; } }
 .pz-card { width: min(520px, 100%); background: var(--pz-panel); border: 1px solid var(--pz-line); border-radius: 20px; padding: 24px; display: grid; gap: 14px; animation: pz-in 380ms var(--pz-spring); }

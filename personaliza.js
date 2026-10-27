@@ -1,7 +1,7 @@
 // Personaliza tu página: el visitante arma su página (negocio, productos con fotos y tallas,
 // colores, estilo y secciones), la ve en vivo en celular o computadora y la manda por WhatsApp.
 // Se carga solo al tocar "Personaliza tu página".
-import { quitarFondo } from "./recorte.js?v=6c1c501";
+import { quitarFondo } from "./recorte.js?v=3c8b0d7";
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MAX_FOTOS = 5, MAX_PRODUCTOS = 6;
@@ -129,7 +129,7 @@ function entrada({ capa }) {
 
 async function construir() {
   const css = document.createElement("link");
-  css.rel = "stylesheet"; css.href = new URL("./personaliza.css?v=6c1c501", import.meta.url).href;
+  css.rel = "stylesheet"; css.href = new URL("./personaliza.css?v=3c8b0d7", import.meta.url).href;
   const listo = new Promise((ok, bad) => { css.onload = ok; css.onerror = bad; });
   document.head.appendChild(css);
   if (!document.querySelector('link[href*="Fraunces"]')) {
@@ -204,7 +204,10 @@ function enlazar() {
   dlg.addEventListener("close", () => { guardar(); document.documentElement.style.overflow = ""; });
   $("[data-cerrar]").addEventListener("click", cerrar);
   dlg.addEventListener("cancel", (e) => { e.preventDefault(); if (!$("#pz-sheet").hidden) ocultarHoja(); else cerrar(); });
-  const texto = (id, clave) => $(id).addEventListener("input", (e) => { S[clave] = e.target.value; pintarSitio(); guardar(); });
+  const texto = (id, clave) => $(id).addEventListener("input", (e) => {
+    if (clave === "whats") e.target.value = e.target.value.replace(/[^\d\s+()-]/g, ""); // solo número
+    S[clave] = e.target.value; pintarSitio(); guardar();
+  });
   // (las entradas del sello y del botón flotante solo se animan cuando aparecen, ver pintarSitio)
   texto("#pz-nombre", "nombre"); texto("#pz-frase", "frase"); texto("#pz-horario", "horario"); texto("#pz-whats", "whats");
   $("#pz-add").addEventListener("click", () => {
@@ -324,7 +327,7 @@ function pintarProductos() {
     el.querySelectorAll("[data-fondo] button").forEach((b) => b.addEventListener("click", () => { p.fondo = b.dataset.v; cambio(); }));
     el.querySelector("[data-tallas]").addEventListener("change", (e) => { p.tallas = e.target.checked ? [{ t: "26", q: 1 }, { t: "27", q: 1 }, { t: "28", q: 1 }] : null; cambio(); });
     el.querySelectorAll("[data-t]").forEach((b) => b.addEventListener("click", () => { const x = p.tallas[+b.dataset.t]; x.q = Math.max(0, Math.min(99, x.q + +b.dataset.d)); cambio(); }));
-    el.querySelector("[data-agregar-talla]")?.addEventListener("click", () => { const i = el.querySelector("[data-nueva-talla]"); const t = i.value.trim(); if (!t || p.tallas.some((x) => x.t === t)) return; p.tallas.push({ t, q: 1 }); cambio(); });
+    el.querySelector("[data-agregar-talla]")?.addEventListener("click", () => { const i = el.querySelector("[data-nueva-talla]"), nota = el.querySelector("[data-nota]"); const t = i.value.trim(); if (!t) { i.focus(); return; } if (p.tallas.some((x) => x.t === t)) { nota.textContent = `La talla ${t} ya está en la lista.`; i.select(); return; } i.value = ""; nota.textContent = ""; p.tallas.push({ t, q: 1 }); cambio(); });
     el.querySelectorAll("[data-c]").forEach((b) => b.addEventListener("click", () => { p.cantidad = Math.max(0, Math.min(999, p.cantidad + +b.dataset.c)); cambio(); }));
     el.querySelector("[data-borrar]").addEventListener("click", () => { soltar(...p.fotos); S.productos = S.productos.filter((x) => x !== p); cambio(); });
     el.querySelector('input[type="file"]')?.addEventListener("change", async (e) => {
@@ -372,7 +375,7 @@ function tarjeta(p) {
       ${p.fotos.length > 1 ? `<button class="prev" type="button" data-mover="-1" aria-label="Foto anterior">${flecha("M10 3 5 8l5 5")}</button><button class="next" type="button" data-mover="1" aria-label="Foto siguiente">${flecha("m6 3 5 5-5 5")}</button><span class="st-dots">${p.fotos.map((_, i) => `<i class="${i === p.i ? "on" : ""}"></i>`).join("")}</span>` : ""}
     </div>
     ${todo === 0 ? `<span class="st-sello ${visto.agotados.has(p.id) ? "" : "entra"}">SOLD OUT</span>` : ""}
-    <div class="st-row"><span class="st-name">${esc(p.nombre)}</span><span class="st-price">${esc(p.precio)}</span></div>
+    <div class="st-row"><span class="st-name">${esc(p.nombre || "Sin nombre")}</span><span class="st-price">${esc(p.precio || "$0")}</span></div>
     ${p.desc ? `<p class="st-desc">${esc(p.desc)}</p>` : ""}
     ${p.tallas ? `<div class="st-sizes">${p.tallas.map((x) => `<span class="${x.q ? "" : "no"}" title="${x.q} disponibles">${esc(x.t)}</span>`).join("")}</div>` : ""}
     <span class="st-stock ${estado[0]}">${estado[1]}</span>
@@ -383,7 +386,7 @@ let visto = { agotados: new Set(), wa: false };
 function pintarSitio() {
   const g = GIROS[S.giro], scr = $("#pz-screen"), sc = S.secciones;
   const scroll = scr.scrollTop;
-  const iniciales = (S.nombre || "Mi negocio").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  const iniciales = ((S.nombre || "Mi negocio").trim().split(/\s+/).map((w) => [...w][0]).filter((c) => c && /[\p{L}\p{N}]/u.test(c)).slice(0, 2).join("") || "MN").toUpperCase();
   scr.innerHTML = `<div class="st" data-estilo="${esc(S.estilo)}" data-letra="${esc(S.letra)}" data-esquinas="${esc(S.esquinas)}" data-boton="${esc(S.boton)}">
     <nav class="st-nav"><span class="st-logo"><i>${esc(iniciales)}</i><b>${esc(S.nombre || "Mi negocio")}</b></span><span class="st-open">Abierto ahora</span></nav>
     <header class="st-hero"><h1>${esc(S.frase || "Lo que tienes hoy, a la vista.")}</h1><span class="st-live">Inventario actualizado hace 1 min</span></header>
@@ -433,7 +436,13 @@ function ajustar() {
   const cs = getComputedStyle(vp), px = (k) => parseFloat(cs[k]) || 0;
   const w = vp.clientWidth - px("paddingLeft") - px("paddingRight"), h = vp.clientHeight - px("paddingTop") - px("paddingBottom");
   const [dw, dh] = S.dev === "cel" ? [390, 800] : [1180, 740];
-  dev.style.zoom = Math.max(0.3, Math.min(1, w / dw, h / dh));
+  if (innerWidth < 900 && S.dev === "cel") {
+    // En celular, la vista previa va casi a tamaño real: llena el alto disponible y su pantalla se desplaza adentro
+    const z = Math.min(1, w / dw);
+    dev.style.zoom = z; dev.style.height = `${Math.max(360, Math.round(h / z))}px`;
+  } else {
+    dev.style.height = ""; dev.style.zoom = Math.max(0.3, Math.min(1, w / dw, h / dh));
+  }
 }
 
 /* ---------- Enviar ---------- */
