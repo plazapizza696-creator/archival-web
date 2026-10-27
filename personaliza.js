@@ -1,7 +1,7 @@
 // Personaliza tu página: el visitante arma su página (negocio, productos con fotos y tallas,
 // colores, estilo y secciones), la ve en vivo en celular o computadora y la manda por WhatsApp.
 // Se carga solo al tocar "Personaliza tu página".
-import { quitarFondo } from "./recorte.js?v=3c8b0d7";
+import { quitarFondo } from "./recorte.js?v=e50aae0";
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MAX_FOTOS = 5, MAX_PRODUCTOS = 6;
@@ -129,7 +129,7 @@ function entrada({ capa }) {
 
 async function construir() {
   const css = document.createElement("link");
-  css.rel = "stylesheet"; css.href = new URL("./personaliza.css?v=3c8b0d7", import.meta.url).href;
+  css.rel = "stylesheet"; css.href = new URL("./personaliza.css?v=e50aae0", import.meta.url).href;
   const listo = new Promise((ok, bad) => { css.onload = ok; css.onerror = bad; });
   document.head.appendChild(css);
   if (!document.querySelector('link[href*="Fraunces"]')) {

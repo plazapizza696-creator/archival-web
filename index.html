@@ -636,7 +636,7 @@ section { scroll-margin-top: 24px; }
       </div>
       <figure class="film">
         <video id="film" src="video/archival.mp4" poster="video/archival.jpg" controls muted playsinline preload="none"
-               aria-label="Video de 44 segundos con voz: Vale le toma foto a sus tenis, cambia la cantidad desde su celular y su clienta los aparta por WhatsApp."><track kind="captions" srclang="es" label="Español" src="video/archival.vtt?v=3c8b0d7" default></video>
+               aria-label="Video de 44 segundos con voz: Vale le toma foto a sus tenis, cambia la cantidad desde su celular y su clienta los aparta por WhatsApp."><track kind="captions" srclang="es" label="Español" src="video/archival.vtt?v=e50aae0" default></video>
       </figure>
 
       <div class="demo" id="demo">
@@ -865,7 +865,7 @@ section { scroll-margin-top: 24px; }
   // 3D: en tiempo libre y con buena conexión, se calienta la descarga de three.js y de los modelos
   if (!ahorra && !/2g|3g/.test(navigator.connection?.effectiveType || "")) {
     (window.requestIdleCallback || ((f) => setTimeout(f, 3000)))(() => {
-      [["modulepreload", "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"], ["modulepreload", "./vitrina3d.js?v=3c8b0d7"], ["prefetch", "modelos/jordan-1-royal.glb"], ["prefetch", "modelos/airpods-pro.glb"]]
+      [["modulepreload", "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"], ["modulepreload", "./vitrina3d.js?v=e50aae0"], ["prefetch", "modelos/jordan-1-royal.glb"], ["prefetch", "modelos/airpods-pro.glb"]]
         .forEach(([rel, href]) => { const l = document.createElement("link"); l.rel = rel; l.href = href; document.head.appendChild(l); });
     });
   }
@@ -892,7 +892,7 @@ section { scroll-margin-top: 24px; }
   function cargarVitrina() {
     if (vitrinaP) return vitrinaP;
     $("viewer").classList.add("is-loading");
-    return (vitrinaP = import("./vitrina3d.js?v=3c8b0d7")
+    return (vitrinaP = import("./vitrina3d.js?v=e50aae0")
       .then(({ createVitrina }) => { viewer = createVitrina($("viewer"), { onError: (err) => console.warn("Vitrina 3D:", err) }); })
       .catch(() => {
         // Sin 3D (red o navegador): la galería se queda solo con fotos
@@ -1108,7 +1108,7 @@ section { scroll-margin-top: 24px; }
     touched = true;
     $("viewer").classList.add("is-loading");
     try {
-      const { quitarFondo } = await import("./recorte.js?v=3c8b0d7");
+      const { quitarFondo } = await import("./recorte.js?v=e50aae0");
       const r = await quitarFondo(file), original = r.original;
       const nueva = { tipo: "foto", sin: r.url, original };
       if (!reduce) replay($("packet"), "go");
@@ -1212,11 +1212,11 @@ section { scroll-margin-top: 24px; }
     const origen = e.detail ? { x: e.clientX, y: e.clientY } : { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     b.setAttribute("aria-busy", "true");
     b.classList.add("is-abriendo");
-    import("./personaliza.js?v=3c8b0d7").then((m) => m.abrir({ giro, origen }))
+    import("./personaliza.js?v=e50aae0").then((m) => m.abrir({ giro, origen }))
       .catch(() => { b.lastChild.textContent = "No cargó, toca de nuevo"; })
       .finally(() => { b.removeAttribute("aria-busy"); b.classList.remove("is-abriendo"); });
   });
-  if (location.hash === "#personaliza") import("./personaliza.js?v=3c8b0d7").then((m) => m.abrir());
+  if (location.hash === "#personaliza") import("./personaliza.js?v=e50aae0").then((m) => m.abrir());
   const form = $("lead");
   form.addEventListener("submit", (e) => {
     e.preventDefault();
