@@ -1,161 +1,12 @@
-// Vitrina 3D de Archival.
-// Toma la foto de un producto, le quita el fondo cuando es liso, la recorta con su silueta
-// y la convierte en una pieza con volumen que gira sobre su eje. Se gira con el dedo o el mouse.
+// Vitrina 3D de Archival: muestra el modelo .glb de un producto girando en un piso de estudio.
+// Se gira con el dedo o el mouse; la conversión de foto a 3D la hace Archival fuera de la landing.
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
-import { prepare, toDrawable } from "./recorte.js";
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const GRID = 180;        // celdas para trazar la silueta
-const SIZE = 2;          // la pieza mide 2 unidades en su lado mayor
-
-/* ---------- 2. Recorte -> silueta (polígono) ---------- */
-
-function silhouette({ mask, W, H }) {
-  const step = Math.max(W, H) / GRID;
-  const gw = Math.ceil(W / step) + 2, gh = Math.ceil(H / step) + 2;
-  let m = new Uint8Array(gw * gh);
-  for (let gy = 1; gy < gh - 1; gy++) for (let gx = 1; gx < gw - 1; gx++) {
-    const px = Math.min(W - 1, ((gx - 0.5) * step) | 0), py = Math.min(H - 1, ((gy - 0.5) * step) | 0);
-    m[gy * gw + gx] = mask[(py * W + px) * 4 + 3] > 110 ? 1 : 0;
-  }
-  // cierre morfológico: tapa huecos de un pixel en la orilla
-  const pass = (src, keep) => {
-    const out = new Uint8Array(src.length);
-    for (let y = 1; y < gh - 1; y++) for (let x = 1; x < gw - 1; x++) {
-      const i = y * gw + x;
-      const s = src[i - 1] + src[i + 1] + src[i - gw] + src[i + gw];
-      out[i] = keep ? (src[i] || s > 0 ? 1 : 0) : (src[i] && s === 4 ? 1 : 0);
-    }
-    return out;
-  };
-  m = pass(pass(m, true), false);
-
-  // la pieza más grande
-  const label = new Int32Array(gw * gh), q = new Int32Array(gw * gh);
-  let best = 0, bestSize = 0, id = 0;
-  for (let i = 0; i < m.length; i++) {
-    if (!m[i] || label[i]) continue;
-    id++; let h = 0, t = 0, size = 0; q[t++] = i; label[i] = id;
-    while (h < t) {
-      const p = q[h++]; size++;
-      for (const o of [p - 1, p + 1, p - gw, p + gw]) if (m[o] && !label[o]) { label[o] = id; q[t++] = o; }
-    }
-    if (size > bestSize) { bestSize = size; best = id; }
-  }
-  if (!best) return null;
-  let start = -1;
-  for (let i = 0; i < m.length; i++) { m[i] = label[i] === best ? 1 : 0; if (start < 0 && m[i]) start = i; }
-
-  // Moore: recorre el contorno en orden
-  const D = [[-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1]];
-  const sx = start % gw, sy = (start / gw) | 0;
-  const pts = [[sx, sy]];
-  let cx = sx, cy = sy, back = 0;
-  for (let guard = 0; guard < gw * gh * 2; guard++) {
-    let moved = false;
-    for (let k = 1; k <= 8; k++) {
-      const dd = (back + k) % 8, nx = cx + D[dd][0], ny = cy + D[dd][1];
-      if (m[ny * gw + nx]) {
-        const pd = (back + k - 1) % 8, bx = cx + D[pd][0], by = cy + D[pd][1];
-        back = D.findIndex((v) => v[0] === bx - nx && v[1] === by - ny);
-        cx = nx; cy = ny; moved = true; break;
-      }
-    }
-    if (!moved || (cx === sx && cy === sy)) break;
-    pts.push([cx, cy]);
-  }
-  if (pts.length < 8) return null;
-  const px = pts.map(([x, y]) => [(x - 0.5) * step, (y - 0.5) * step]);
-  return smooth(simplify(px, step * 0.7), 2);
-}
-
-function simplify(pts, eps) {
-  const rdp = (a) => {
-    if (a.length < 3) return a;
-    const [x1, y1] = a[0], [x2, y2] = a[a.length - 1];
-    const L = Math.hypot(x2 - x1, y2 - y1) || 1;
-    let far = 0, at = 0;
-    for (let i = 1; i < a.length - 1; i++) {
-      const dd = Math.abs((y2 - y1) * a[i][0] - (x2 - x1) * a[i][1] + x2 * y1 - y2 * x1) / L;
-      if (dd > far) { far = dd; at = i; }
-    }
-    return far > eps ? [...rdp(a.slice(0, at + 1)).slice(0, -1), ...rdp(a.slice(at))] : [a[0], a[a.length - 1]];
-  };
-  const half = pts.length >> 1;
-  return [...rdp(pts.slice(0, half + 1)).slice(0, -1), ...rdp([...pts.slice(half), pts[0]]).slice(0, -1)];
-}
-
-function smooth(p, iterations) {
-  for (let k = 0; k < iterations; k++) {
-    const out = [];
-    for (let i = 0; i < p.length; i++) {
-      const a = p[i], b = p[(i + 1) % p.length];
-      out.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
-    }
-    p = out;
-  }
-  return p;
-}
-
-/* ---------- 3. Silueta -> pieza 3D ---------- */
-
-function roundedRect(w, h, r) {
-  const s = new THREE.Shape(), x = -w / 2, y = -h / 2;
-  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
-  s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r);
-  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
-  return s;
-}
-
-function buildPiece(prep, renderer) {
-  const { W, H, avg } = prep;
-  const k = SIZE / Math.max(W, H), w = W * k, h = H * k;
-  const outline = prep.cutout ? silhouette(prep) : null;
-
-  let shape;
-  if (outline) {
-    const v = outline.map(([x, y]) => new THREE.Vector2((x - W / 2) * k, (H / 2 - y) * k));
-    if (THREE.ShapeUtils.isClockWise(v)) v.reverse();
-    shape = new THREE.Shape(v);
-  } else {
-    shape = roundedRect(w, h, Math.min(w, h) * 0.07);
-  }
-
-  const depth = 0.1, bevel = 0.035;
-  const uv = {
-    generateTopUV(g, verts, a, b, c) {
-      return [a, b, c].map((i) => new THREE.Vector2(verts[i * 3] / w + 0.5, verts[i * 3 + 1] / h + 0.5));
-    },
-    // el canto es de color liso: no necesita coordenadas de textura
-    generateSideWallUV: () => [new THREE.Vector2(), new THREE.Vector2(), new THREE.Vector2(), new THREE.Vector2()],
-  };
-  const geo = new THREE.ExtrudeGeometry(shape, {
-    depth, bevelEnabled: true, bevelThickness: bevel, bevelSize: bevel * 0.8, bevelSegments: 4, curveSegments: 6, UVGenerator: uv,
-  });
-  geo.translate(0, 0, -depth / 2);
-
-  // la cara lleva la foto sobre el color del canto, así los bordes del recorte nunca quedan huecos
-  const edge = new THREE.Color(avg[0] / 255, avg[1] / 255, avg[2] / 255).multiplyScalar(0.62);
-  const face = document.createElement("canvas");
-  face.width = W; face.height = H;
-  const fx = face.getContext("2d");
-  fx.fillStyle = `#${edge.clone().lerp(new THREE.Color(1, 1, 1), 0.15).getHexString()}`;
-  fx.fillRect(0, 0, W, H);
-  fx.drawImage(prep.canvas, 0, 0);
-  const map = new THREE.CanvasTexture(face);
-  map.colorSpace = THREE.SRGBColorSpace;
-  map.anisotropy = renderer.capabilities.getMaxAnisotropy();
-
-  const capMat = new THREE.MeshPhysicalMaterial({ map, roughness: 0.45, clearcoat: 0.9, clearcoatRoughness: 0.16 });
-  const sideMat = new THREE.MeshPhysicalMaterial({ color: edge, roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.1 });
-  const mesh = new THREE.Mesh(geo, [capMat, sideMat]);
-  mesh.userData = { w, h, depth: depth + bevel * 2, parts: [] };
-  return mesh;
-}
+const SIZE = 2; // el modelo mide 2 unidades en su lado mayor
 
 function disposePiece(obj) {
   obj?.traverse((o) => {
@@ -273,10 +124,6 @@ export function createVitrina(host, { spin = 0.32, onError } = {}) {
     img.alt = "";
     host.prepend(img);
     return {
-      async setImage(input) {
-        const src = await toDrawable(input);
-        img.src = src instanceof HTMLCanvasElement ? src.toDataURL() : src.src;
-      },
       setModel: async () => false,
       dispose() { img.remove(); },
     };
@@ -343,7 +190,7 @@ export function createVitrina(host, { spin = 0.32, onError } = {}) {
   function frame() {
     // Solo dibuja si el visor está en pantalla; se revisa cada cuadro para no depender de avisos que pueden no llegar
     const r = host.getBoundingClientRect();
-    if (r.bottom < 0 || r.top > innerHeight || r.width === 0) { clock.getDelta(); return; }
+    if (host.classList.contains("is-2d") || r.bottom < 0 || r.top > innerHeight || r.width === 0) { clock.getDelta(); return; } // tapado por una foto o fuera de pantalla: no dibuja
     const dt = Math.min(clock.getDelta(), 0.05), now = performance.now();
     if (!dragging) {
       // Exhibidor: frena cuando el producto queda de frente o de espaldas y avanza en los costados
@@ -463,30 +310,6 @@ export function createVitrina(host, { spin = 0.32, onError } = {}) {
           appear = reduceMotion ? 1 : 0;
           if (!reduceMotion) velY += 4;
         }
-        frame();
-        return true;
-      } catch (err) {
-        onError?.(err);
-        return false;
-      } finally {
-        if (mine === token) host.classList.remove("is-loading");
-      }
-    },
-    async setImage(input) {
-      const mine = ++token;
-      host.classList.add("is-loading");
-      try {
-        const prep = prepare(await toDrawable(input));
-        if (mine !== token) return;
-        const next = buildPiece(prep, renderer);
-        disposePiece(piece);
-        if (piece) spinGroup.remove(piece);
-        piece = next;
-        reveal = null;
-        spinGroup.add(piece);
-        placeStage(piece.userData);
-        appear = reduceMotion ? 1 : 0;
-        if (!reduceMotion) velY += 5; // entra con un giro de presentación
         frame();
         return true;
       } catch (err) {

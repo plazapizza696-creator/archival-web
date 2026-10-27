@@ -1,7 +1,7 @@
 // Personaliza tu página: el visitante arma su página (negocio, productos con fotos y tallas,
 // colores, estilo y secciones), la ve en vivo en celular o computadora y la manda por WhatsApp.
 // Se carga solo al tocar "Personaliza tu página".
-import { quitarFondo } from "./recorte.js";
+import { quitarFondo } from "./recorte.js?v=46d14e0";
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MAX_FOTOS = 5, MAX_PRODUCTOS = 6;
@@ -58,23 +58,44 @@ const totalDe = (p) => (p.tallas ? p.tallas.reduce((a, x) => a + x.q, 0) : p.can
 function guardar() {
   try { localStorage.setItem(GUARDADO, JSON.stringify({ ...S, productos: S.productos.map((p) => ({ ...p, fotos: p.fotos.filter((f) => !f.original) })) })); } catch {}
 }
+// Lo guardado se fusiona sobre el estado inicial y se valida: así un cambio de forma o un dato ajeno no rompe el estudio
+const OPCIONES = { estilo: ["limpio", "audaz", "elegante"], letra: ["moderna", "clasica", "redonda"], esquinas: ["rectas", "suaves", "redondas"], boton: ["relleno", "contorno"], dev: ["cel", "pc"] };
 function cargar() {
-  try { const s = JSON.parse(localStorage.getItem(GUARDADO)); if (s && s.productos) { ids = Math.max(0, ...s.productos.map((p) => p.id)); s.productos.forEach((p) => (p.i = 0)); return s; } } catch {}
-  return null;
+  try {
+    const s = JSON.parse(localStorage.getItem(GUARDADO));
+    if (!s || !Array.isArray(s.productos)) return null;
+    const base = estadoInicial(s.giro in GIROS ? s.giro : "reventa");
+    const r = { ...base, ...s, giro: base.giro, secciones: { ...base.secciones, ...(s.secciones || {}) }, productos: s.productos.filter((p) => p && Array.isArray(p.fotos)) };
+    for (const k in OPCIONES) if (!OPCIONES[k].includes(r[k])) r[k] = base[k];
+    if (!TEMAS.some((t) => t.id === r.tema)) r.tema = base.tema;
+    r.productos.forEach((p) => { p.i = 0; if (!p.fotos.length) p.fondo = "sin"; });
+    ids = Math.max(0, ...r.productos.map((p) => +p.id || 0));
+    return r;
+  } catch { return null; }
 }
+// Las fotos subidas son blob: URLs; al quitarlas se liberan de memoria
+const soltar = (...fs) => fs.forEach((f) => [f.sin, f.original].forEach((u) => typeof u === "string" && u.startsWith("blob:") && URL.revokeObjectURL(u)));
 
 /* ---------- Armado del estudio ---------- */
+let abriendo = false;
 export async function abrir({ giro, origen } = {}) {
+  if (abriendo || dlg?.open) return; // doble toque
+  abriendo = true;
   const ola = origen && !reduce ? estallido(origen) : null; // arranca ya, mientras carga el estudio
-  if (!dlg) await construir();
-  S = S || cargar() || estadoInicial(giro === "restaurante" ? "comida" : giro || "reventa");
-  pintarTodo();
-  if (ola) await ola.listo;
-  dlg.classList.toggle("con-origen", !!ola);
-  if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
-  dlg.focus(); // el foco queda en el estudio, no salta al botón Salir
-  document.documentElement.style.overflow = "hidden";
-  if (ola) entrada(ola);
+  try {
+    if (!dlg) await construir();
+    S = S || cargar() || estadoInicial(giro === "restaurante" ? "comida" : giro || "reventa");
+    pintarTodo();
+    if (ola) await ola.listo;
+    dlg.classList.toggle("con-origen", !!ola);
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+    dlg.focus(); // el foco queda en el estudio, no salta al botón Salir
+    document.documentElement.style.overflow = "hidden";
+    if (ola) entrada(ola);
+  } catch (e) {
+    ola?.capa.remove(); // que no se quede la capa azul tapando la página
+    throw e;
+  } finally { abriendo = false; }
 }
 
 // Un círculo azul sale del botón y llena la pantalla; en medio aparece la A de Archival
@@ -107,7 +128,7 @@ function entrada({ capa }) {
 
 async function construir() {
   const css = document.createElement("link");
-  css.rel = "stylesheet"; css.href = new URL("./personaliza.css", import.meta.url).href;
+  css.rel = "stylesheet"; css.href = new URL("./personaliza.css?v=46d14e0", import.meta.url).href;
   const listo = new Promise((ok, bad) => { css.onload = ok; css.onerror = bad; });
   document.head.appendChild(css);
   if (!document.querySelector('link[href*="Fraunces"]')) {
@@ -122,7 +143,7 @@ async function construir() {
   dlg.setAttribute("aria-label", "Personaliza tu página");
   dlg.innerHTML = `
   <header class="pz-bar">
-    <span class="pz-brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path fill="#EEF0F6" d="M2 62L25 2H39L62 62H48L32 20L16 62Z"/><rect fill="#3552FF" x="27.5" y="43" width="9" height="9"/></svg>Personaliza tu página <small>· se guarda solo en este dispositivo</small></span>
+    <span class="pz-brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path fill="#EEF0F6" d="M2 62L25 2H39L62 62H48L32 20L16 62Z"/><rect fill="#3552FF" x="27.5" y="43" width="9" height="9"/></svg>Personaliza tu página <small>· se guarda en este dispositivo (las fotos no)</small></span>
     <nav class="pz-steps" aria-label="Pasos">${["negocio", "giro", "productos", "colores", "estilo", "secciones"].map((s) => `<a href="#pz-${s}" data-paso="${s}" aria-label="${s}"></a>`).join("")}</nav>
     <button class="pz-x" type="button" data-cerrar>Salir <span aria-hidden="true">✕</span></button>
   </header>
@@ -172,7 +193,7 @@ async function construir() {
   </div>`;
   document.body.appendChild(dlg);
   enlazar();
-  await listo;
+  try { await listo; } catch (e) { dlg.remove(); dlg = null; throw e; } // sin estilos no se abre: se reintenta al siguiente toque
 }
 
 /* ---------- Controles ---------- */
@@ -214,6 +235,7 @@ function pintarTodo() {
     if (b.dataset.giro === S.giro) return;
     conTransicion(e, () => {
       const n = estadoInicial(b.dataset.giro);
+      S.productos.forEach((p) => soltar(...p.fotos));
       Object.assign(S, { giro: n.giro, productos: n.productos, frase: n.frase, nombre: S.nombre === GIROS[S.giro].nombre ? n.nombre : S.nombre, tema: S.temaElegido ? S.tema : n.tema });
       pintarTodo();
       guardar();
@@ -297,19 +319,19 @@ function pintarProductos() {
     el.addEventListener("toggle", () => { S.abiertos = el.open ? [...new Set([...S.abiertos, p.id])] : S.abiertos.filter((x) => x !== p.id); });
     el.querySelectorAll("[data-k]").forEach((i) => i.addEventListener("input", () => { p[i.dataset.k] = i.value; el.querySelector("summary b").textContent = p.nombre || "Sin nombre"; pintarSitio(); guardar(); }));
     const cambio = () => { pintarProductos(); pintarSitio(); guardar(); };
-    el.querySelectorAll("[data-quitar]").forEach((b) => b.addEventListener("click", () => { p.fotos.splice(+b.dataset.quitar, 1); p.i = 0; cambio(); }));
+    el.querySelectorAll("[data-quitar]").forEach((b) => b.addEventListener("click", () => { soltar(...p.fotos.splice(+b.dataset.quitar, 1)); p.i = 0; if (!p.fotos.length) p.fondo = "sin"; cambio(); }));
     el.querySelectorAll("[data-fondo] button").forEach((b) => b.addEventListener("click", () => { p.fondo = b.dataset.v; cambio(); }));
     el.querySelector("[data-tallas]").addEventListener("change", (e) => { p.tallas = e.target.checked ? [{ t: "26", q: 1 }, { t: "27", q: 1 }, { t: "28", q: 1 }] : null; cambio(); });
     el.querySelectorAll("[data-t]").forEach((b) => b.addEventListener("click", () => { const x = p.tallas[+b.dataset.t]; x.q = Math.max(0, Math.min(99, x.q + +b.dataset.d)); cambio(); }));
     el.querySelector("[data-agregar-talla]")?.addEventListener("click", () => { const i = el.querySelector("[data-nueva-talla]"); const t = i.value.trim(); if (!t || p.tallas.some((x) => x.t === t)) return; p.tallas.push({ t, q: 1 }); cambio(); });
     el.querySelectorAll("[data-c]").forEach((b) => b.addEventListener("click", () => { p.cantidad = Math.max(0, Math.min(999, p.cantidad + +b.dataset.c)); cambio(); }));
-    el.querySelector("[data-borrar]").addEventListener("click", () => { S.productos = S.productos.filter((x) => x !== p); cambio(); });
+    el.querySelector("[data-borrar]").addEventListener("click", () => { soltar(...p.fotos); S.productos = S.productos.filter((x) => x !== p); cambio(); });
     el.querySelector('input[type="file"]')?.addEventListener("change", async (e) => {
       const archivos = [...e.target.files].slice(0, MAX_FOTOS - p.fotos.length);
       const nota = el.querySelector("[data-nota]");
       if (e.target.files.length > archivos.length) nota.textContent = `Solo caben ${MAX_FOTOS} fotos por producto.`;
       for (const file of archivos) {
-        if (!file.type.startsWith("image/")) continue;
+        if (file.type && !file.type.startsWith("image/")) continue; // algunos Android mandan type vacío en un JPG válido
         nota.textContent = "Quitando el fondo…";
         try {
           const r = await quitarFondo(file);
@@ -317,7 +339,7 @@ function pintarProductos() {
           p.fotos.push({ sin: r.url, original: r.original });
           if (!r.ok) { p.fondo = "original"; nota.textContent = "Una foto tiene fondo con textura: se muestra original. En tu página real la recortamos nosotros."; }
           else nota.textContent = "";
-        } catch { nota.textContent = "No pudimos leer una imagen. Prueba con JPG o PNG."; }
+        } catch { nota.textContent = "No pudimos leer una imagen. Si es HEIC, cámbiala a JPG desde Fotos; también sirve PNG."; }
       }
       S.abiertos = [...new Set([...S.abiertos, p.id])];
       p.i = p.fotos.length - 1;
@@ -361,7 +383,7 @@ function pintarSitio() {
   const g = GIROS[S.giro], scr = $("#pz-screen"), sc = S.secciones;
   const scroll = scr.scrollTop;
   const iniciales = (S.nombre || "Mi negocio").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
-  scr.innerHTML = `<div class="st" data-estilo="${S.estilo}" data-letra="${S.letra}" data-esquinas="${S.esquinas}" data-boton="${S.boton}">
+  scr.innerHTML = `<div class="st" data-estilo="${esc(S.estilo)}" data-letra="${esc(S.letra)}" data-esquinas="${esc(S.esquinas)}" data-boton="${esc(S.boton)}">
     <nav class="st-nav"><span class="st-logo"><i>${esc(iniciales)}</i><b>${esc(S.nombre || "Mi negocio")}</b></span><span class="st-open">Abierto ahora</span></nav>
     <header class="st-hero"><h1>${esc(S.frase || "Lo que tienes hoy, a la vista.")}</h1><span class="st-live">Inventario actualizado hace 1 min</span></header>
     <div class="st-cats">${g.cats.map((c) => `<span>${esc(c)}</span>`).join("")}</div>
