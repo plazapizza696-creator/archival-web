@@ -1,7 +1,7 @@
 // Personaliza tu página: el visitante arma su página (negocio, productos con fotos y tallas,
 // colores, estilo y secciones), la ve en vivo en celular o computadora y la manda por WhatsApp.
 // Se carga solo al tocar "Personaliza tu página".
-import { quitarFondo } from "./recorte.js?v=46d14e0";
+import { quitarFondo } from "./recorte.js?v=6c1c501";
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MAX_FOTOS = 5, MAX_PRODUCTOS = 6;
@@ -34,7 +34,7 @@ const GIROS = {
   tienda: { label: "Tienda", nombre: "Punto Tech", frase: "Lo que buscas, en existencia.", cats: ["Audio", "Cargadores", "Fundas"], cta: "Comprar por WhatsApp", tema: "arena",
     productos: () => [prod("AirPods Pro (2.ª gen.)", "$4,299", "Sellados, con garantía de 1 año.", ["fotos/airpods-pro.webp"], null, 8), prod("Funda de silicón", "$349", "Para iPhone 15 y 16.", [], null, 12)] },
   comida: { label: "Comida", nombre: "Taquería La Güera", frase: "Al pastor desde las 6 de la tarde.", cats: ["Tacos", "Gringas", "Bebidas"], cta: "Pedir por WhatsApp", tema: "terracota",
-    productos: () => [prod("Tacos al pastor", "$95", "Orden de 5, tortilla hecha a mano.", ["fotos/tacos-al-pastor.webp"], null, 9), prod("Agua de horchata", "$35", "Medio litro.", [], null, 0)] },
+    productos: () => [prod("Tacos al pastor", "$95", "Orden de 5, tortilla hecha a mano.", [], null, 9), prod("Agua de horchata", "$35", "Medio litro.", [], null, 0)] },
   otro: { label: "Otro", nombre: "Mi negocio", frase: "Lo que tienes hoy, a la vista.", cats: ["Lo nuevo", "Lo más pedido"], cta: "Pedir por WhatsApp", tema: "archival",
     productos: () => [prod("Mi producto", "$100", "Cuéntale a tu cliente por qué lo quiere.", [], null, 5)] },
 };
@@ -84,7 +84,8 @@ export async function abrir({ giro, origen } = {}) {
   const ola = origen && !reduce ? estallido(origen) : null; // arranca ya, mientras carga el estudio
   try {
     if (!dlg) await construir();
-    S = S || cargar() || estadoInicial(giro === "restaurante" ? "comida" : giro || "reventa");
+    const MAPA = { restaurante: "comida", perfumeria: "tienda" }; // pestañas de la demo → giros del estudio
+    S = S || cargar() || estadoInicial(MAPA[giro] || (giro in GIROS ? giro : "reventa"));
     pintarTodo();
     if (ola) await ola.listo;
     dlg.classList.toggle("con-origen", !!ola);
@@ -128,7 +129,7 @@ function entrada({ capa }) {
 
 async function construir() {
   const css = document.createElement("link");
-  css.rel = "stylesheet"; css.href = new URL("./personaliza.css?v=46d14e0", import.meta.url).href;
+  css.rel = "stylesheet"; css.href = new URL("./personaliza.css?v=6c1c501", import.meta.url).href;
   const listo = new Promise((ok, bad) => { css.onload = ok; css.onerror = bad; });
   document.head.appendChild(css);
   if (!document.querySelector('link[href*="Fraunces"]')) {

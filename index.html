@@ -544,6 +544,9 @@ section { scroll-margin-top: 24px; }
 .m-ok { font-family: var(--mono); font-size: 9px; color: #2F8A57; }
 .m-btn { height: 30px; border-radius: 8px; background: var(--ac); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 10px; }
 .mini[data-audaz] .m-btn { background: var(--ink); color: var(--bg); text-transform: uppercase; }
+.mini[data-elegante] .m-title { font-weight: 500; letter-spacing: -0.02em; }
+.mini[data-elegante] .m-card { box-shadow: none; border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent); border-radius: 0; padding-inline: 0; background: transparent; }
+.mini[data-elegante] .m-btn { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--ink); }
 @media (max-width: 960px) { .teaser { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 680px) { .mini:nth-child(2) { display: none; } }
 
@@ -628,30 +631,30 @@ section { scroll-margin-top: 24px; }
       </div>
       <figure class="film">
         <video id="film" src="video/archival.mp4" poster="video/archival.jpg" controls muted playsinline preload="none"
-               aria-label="Video de 44 segundos con voz: Vale le toma foto a sus tenis, cambia la cantidad desde su celular y su clienta los aparta por WhatsApp."><track kind="captions" srclang="es" label="Español" src="video/archival.vtt?v=46d14e0" default></video>
+               aria-label="Video de 44 segundos con voz: Vale le toma foto a sus tenis, cambia la cantidad desde su celular y su clienta los aparta por WhatsApp."><track kind="captions" srclang="es" label="Español" src="video/archival.vtt?v=6c1c501" default></video>
       </figure>
 
       <div class="demo" id="demo">
         <div class="demo-head">
           <div class="tabs" role="tablist" aria-label="Tipo de negocio">
             <span class="tab-ink" aria-hidden="true"></span>
-            <button class="tab" role="tab" id="tab-restaurante" aria-selected="true" aria-controls="demo-panel" data-giro="restaurante">Restaurante</button>
+            <button class="tab" role="tab" id="tab-perfumeria" aria-selected="true" aria-controls="demo-panel" data-giro="perfumeria">Perfumería</button>
             <button class="tab" role="tab" id="tab-reventa" aria-selected="false" aria-controls="demo-panel" data-giro="reventa" tabindex="-1">Reventa</button>
             <button class="tab" role="tab" id="tab-tienda" aria-selected="false" aria-controls="demo-panel" data-giro="tienda" tabindex="-1">Tienda</button>
           </div>
         </div>
 
-        <div class="demo-body" id="demo-panel" role="tabpanel" aria-labelledby="tab-restaurante">
+        <div class="demo-body" id="demo-panel" role="tabpanel" aria-labelledby="tab-perfumeria">
           <div>
             <div class="label col-label">Tu celular</div>
             <div class="phone">
               <div class="phone-top mono"><span>Inventario</span><span id="clock">13:42</span></div>
               <div class="phone-item">
                 <div class="phone-head">
-                  <img class="thumb" id="p-thumb" src="fotos/tacos-al-pastor.webp" alt="" width="44" height="44">
+                  <img class="thumb" id="p-thumb" src="fotos/perfume.webp" alt="" width="44" height="44">
                   <div class="phone-id">
-                    <span class="phone-name" id="p-name">Tacos al pastor</span>
-                    <span class="phone-sub mono" id="p-sku">MENÚ · 07</span>
+                    <span class="phone-name" id="p-name">Montblanc Legend 100 ml</span>
+                    <span class="phone-sub mono" id="p-sku">REF · 118</span>
                   </div>
                 </div>
                 <div class="sizes" id="p-sizes" role="group" aria-label="Talla que vas a contar" hidden></div>
@@ -659,7 +662,7 @@ section { scroll-margin-top: 24px; }
                   <button class="step step--sell" id="sell" aria-label="Vendí uno: restar una unidad">
                     <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9h12" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>
                   </button>
-                  <div class="count" aria-live="polite"><span class="num" id="p-count">9</span><small id="p-unit">órdenes</small></div>
+                  <div class="count" aria-live="polite"><span class="num" id="p-count">6</span><small id="p-unit">piezas</small></div>
                   <button class="step" id="restock" aria-label="Llegó uno: sumar una unidad">
                     <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 9h12M9 3v12" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>
                   </button>
@@ -681,8 +684,8 @@ section { scroll-margin-top: 24px; }
             <div class="label col-label">Lo que ve tu cliente</div>
             <article class="card" id="card">
               <div class="viewer" id="viewer" role="group" aria-roledescription="galería" tabindex="0" aria-label="Producto">
-                <div class="viewer-qty" aria-hidden="true"><b class="roll" id="v-qty">9</b><span id="v-unit">órdenes</span></div>
-                <img class="slide" id="v-img" src="fotos/tacos-al-pastor.webp" alt="">
+                <div class="viewer-qty" aria-hidden="true"><b class="roll" id="v-qty">6</b><span id="v-unit">piezas</span></div>
+                <img class="slide" id="v-img" src="fotos/perfume.webp" alt="">
                 <button class="g-arrow g-prev" id="g-prev" type="button" aria-label="Foto anterior"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                 <button class="g-arrow g-next" id="g-next" type="button" aria-label="Foto siguiente"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                 <span class="viewer-hint mono" aria-hidden="true"><svg viewBox="0 0 20 12"><path d="M5 2 1 6l4 4M15 2l4 4-4 4M1 6h18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Arrastra para girar</span>
@@ -697,19 +700,19 @@ section { scroll-margin-top: 24px; }
                 </div>
               </div>
               <p class="g-note" id="g-note" aria-live="polite"></p>
-              <div class="card-meta mono"><span id="c-sku">MENÚ · 07</span><span id="c-shop">Taquería La Güera</span></div>
-              <p class="card-name"><span class="strike" id="c-name">Tacos al pastor</span></p>
-              <p class="card-desc" id="c-desc">Orden de 5, tortilla de maíz hecha a mano.</p>
+              <div class="card-meta mono"><span id="c-sku">REF · 118</span><span id="c-shop">Aroma Centro</span></div>
+              <p class="card-name"><span class="strike" id="c-name">Montblanc Legend 100 ml</span></p>
+              <p class="card-desc" id="c-desc">Sellado y original, con caja. Fresco y amaderado; dura todo el día.</p>
               <div class="sizes" id="c-sizes" role="group" aria-label="Tallas disponibles" hidden></div>
               <div class="units" id="c-units" aria-hidden="true"></div>
               <div class="status">
-                <span class="chip" id="c-chip" data-state="ok"><i aria-hidden="true"></i><span id="c-status" class="roll">Quedan 9 órdenes</span></span>
+                <span class="chip" id="c-chip" data-state="ok"><i aria-hidden="true"></i><span id="c-status" class="roll">Hay 6 piezas</span></span>
                 <span class="stamp mono" id="c-stamp">Actualizado hace 12 s</span>
               </div>
               <div class="card-row">
-                <span class="price"><span class="strike" id="c-price">$95</span><small>MXN</small></span>
+                <span class="price"><span class="strike" id="c-price">$1,250</span><small>MXN</small></span>
               </div>
-              <a class="btn" id="c-cta" href="#pide-tu-pagina">Pedir por WhatsApp</a>
+              <a class="btn" id="c-cta" href="#pide-tu-pagina">Comprar por WhatsApp</a>
             </article>
           </div>
         </div>
@@ -723,15 +726,15 @@ section { scroll-margin-top: 24px; }
         <div class="teaser-minis" aria-hidden="true">
           <span class="mini" style="--bg:#0B0D14;--sf:#151925;--ink:#F2F4F8;--mu:#8E95A8;--ac:#3D63FF"><span class="m-page">
             <i class="m-nav"><b>KN</b>Kicks Norte<em>● Abierto</em></i>
-            <i class="m-title">Pares 100&nbsp;% originales.</i>
+            <i class="m-title">100% originales.</i>
             <i class="m-cats"><i>Tenis</i><i>Ropa</i><i>Gorras</i></i>
             <i class="m-card"><img src="fotos/jordan-1-royal.webp" alt="" loading="lazy"><i class="m-row"><span>Jordan 1 Royal</span><span>$5,200</span></i><i class="m-sizes"><s>25</s><b>26</b><s>26.5</s><b>27</b><b>28</b></i><i class="m-btn">Apartar por WhatsApp</i></i>
           </span></span>
-          <span class="mini" data-audaz style="--bg:#F6EEE6;--sf:#FFFFFF;--ink:#2A1D16;--mu:#7D6A5E;--ac:#C2532B"><span class="m-page">
-            <i class="m-nav"><b>TG</b>Taquería La Güera<em>● Abierto</em></i>
-            <i class="m-title">Al pastor desde las 6.</i>
-            <i class="m-cats"><i>Tacos</i><i>Gringas</i><i>Bebidas</i></i>
-            <i class="m-card"><img src="fotos/tacos-al-pastor.webp" alt="" loading="lazy"><i class="m-row"><span>Tacos al pastor</span><span>$95</span></i><i class="m-ok">● Hay 9 órdenes</i><i class="m-btn">Pedir por WhatsApp</i></i>
+          <span class="mini" data-elegante style="--bg:#F3EFE8;--sf:#FBF9F5;--ink:#1E1A16;--mu:#776F66;--ac:#1E1A16"><span class="m-page">
+            <i class="m-nav"><b>AC</b>Aroma Centro<em>● Abierto</em></i>
+            <i class="m-title">Lo que te queda bien.</i>
+            <i class="m-cats"><i>Perfumes</i><i>Sets</i><i>Cremas</i></i>
+            <i class="m-card"><img src="fotos/perfume.webp" alt="" loading="lazy"><i class="m-row"><span>Montblanc Legend</span><span>$1,250</span></i><i class="m-ok">● Quedan 6</i><i class="m-btn">Comprar por WhatsApp</i></i>
           </span></span>
         </div>
       </aside>
@@ -831,13 +834,13 @@ section { scroll-margin-top: 24px; }
 <footer class="foot-band"><div class="wrap foot">
   <p class="foot-line">Si lo tienes, se ve.</p>
   <a class="foot-wordmark" href="#" aria-label="Archival, volver arriba"><svg viewBox="0 -798 4824 818" aria-hidden="true" focusable="false"><use href="#wordmark"/></svg></a>
-  <div class="foot-row"><span>Hecho en México · 2026</span><p class="credits">Fotos de ejemplo, modificadas (fondo quitado y convertidas a 3D): tacos por William Neuheisel (<a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>, <a href="https://commons.wikimedia.org/w/index.php?curid=32052588">fuente</a>); AirPods Pro por Hajoon0102 (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>, <a href="https://commons.wikimedia.org/w/index.php?curid=131686950">fuente</a>; el recorte y el modelo 3D se comparten con la misma licencia).</p></div>
+  <div class="foot-row"><span>Hecho en México · 2026</span><p class="credits">Fotos de ejemplo, modificadas (fondo quitado): AirPods Pro por Hajoon0102 (<a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>, <a href="https://commons.wikimedia.org/w/index.php?curid=131686950">fuente</a>; el recorte y el modelo 3D se comparten con la misma licencia); perfume por Fashion Needles (<a href="https://www.pexels.com/license/">Licencia Pexels</a>, <a href="https://www.pexels.com/photo/elegant-perfume-bottle-on-minimalist-background-32645088/">fuente</a>).</p></div>
 </div></footer>
 
 <script>
 (() => {
   const GIROS = {
-    restaurante: { sku: "MENÚ · 07", shop: "Taquería La Güera", name: "Tacos al pastor", desc: "Orden de 5, tortilla de maíz hecha a mano.", price: "$95", unit: ["orden", "órdenes"], stock: 9, max: 12, low: 3, out: "Se acabó por hoy", sello: ["SE ACABÓ", "Mañana hay más"], cta: "Pedir por WhatsApp", others: [["Suadero", "14"], ["Gringa de pastor", "6"]] },
+    perfumeria: { sku: "REF · 118", shop: "Aroma Centro", name: "Montblanc Legend 100 ml", desc: "Sellado y original, con caja. Fresco y amaderado; dura todo el día.", price: "$1,250", unit: ["pieza", "piezas"], stock: 6, max: 12, low: 2, out: "Agotado", sello: ["AGOTADO", "Pregunta cuándo llega"], cta: "Comprar por WhatsApp", others: [["Legend Blue 50 ml", "4"], ["Set de viaje 3 × 10 ml", "9"]] },
     reventa:     { sku: "DROP 14 · #031", shop: "Kicks Norte", name: "Jordan 1 High OG Royal Reimagined", desc: "Nuevos en caja, con ticket de compra. Elige tu talla.", price: "$5,200", unit: ["par", "pares"], max: 4, low: 1, out: "Vendido", sello: ["SOLD OUT", "Se vendieron todas las tallas"], cta: "Apartar por WhatsApp", others: [["Dunk Low Panda · 26.5", "1"], ["New Balance 550 · 28", "3"]],
                    tallas: [["25", 0], ["26", 1], ["26.5", 0], ["27", 1], ["28", 2], ["29", 0]] },
     tienda:      { sku: "SKU APP-2", shop: "Punto Tech", name: "AirPods Pro (2.ª gen.)", desc: "Con estuche de carga. Nuevos, sellados y con garantía de 1 año.", price: "$4,299", unit: ["pieza", "piezas"], stock: 8, max: 12, low: 3, out: "Agotado", sello: ["AGOTADO", "Ya no quedan piezas"], cta: "Comprar por WhatsApp", others: [["AirPods 4", "3"], ["Funda de silicón", "12"]] },
@@ -850,7 +853,7 @@ section { scroll-margin-top: 24px; }
   if (film && !reduce && !ahorra) new IntersectionObserver((es, io) => {
     if (es[0].isIntersecting) { film.play().catch(() => {}); io.disconnect(); }
   }, { threshold: 0.5 }).observe(film);
-  let giro = "restaurante";
+  let giro = "perfumeria";
   // Existencias: por talla cuando el giro las tiene, si no un solo número
   const stock = Object.fromEntries(Object.entries(GIROS).map(([k, g]) => [k, g.tallas ? g.tallas.map((t) => t[1]) : g.stock]));
   const talla = Object.fromEntries(Object.entries(GIROS).map(([k, g]) => [k, g.tallas ? Math.max(0, g.tallas.findIndex((t) => t[1] > 0)) : -1]));
@@ -861,9 +864,10 @@ section { scroll-margin-top: 24px; }
   // Galería del producto: el 3D (si hay modelo) y hasta 5 fotos. Las fotos se ven quietas, sin girar.
   const MAX_FOTOS = 5;
   const MODELOS = { reventa: { url: "modelos/jordan-1-royal.glb" }, tienda: { url: "modelos/airpods-pro.glb", revelar: true } };
-  const FOTOS = { restaurante: "fotos/tacos-al-pastor.webp", reventa: "fotos/jordan-1-royal.webp", tienda: "fotos/airpods-pro.webp" };
+  const FOTOS = { perfumeria: "fotos/perfume.webp", reventa: "fotos/jordan-1-royal.webp", tienda: "fotos/airpods-pro.webp" };
+  const ORIGINALES = { perfumeria: "fotos/perfume-original.webp" }; // para que "Original" muestre algo en la demo
   // Cada foto guarda su versión sin fondo y, si la subió el dueño, la original con fondo
-  const slides = Object.fromEntries(Object.keys(GIROS).map((k) => [k, [...(MODELOS[k] ? [{ tipo: "3d" }] : []), { tipo: "foto", sin: FOTOS[k], original: null }]]));
+  const slides = Object.fromEntries(Object.keys(GIROS).map((k) => [k, [...(MODELOS[k] ? [{ tipo: "3d" }] : []), { tipo: "foto", sin: FOTOS[k], original: ORIGINALES[k] || null }]]));
   const vista = Object.fromEntries(Object.keys(GIROS).map((k) => [k, { i: 0, fondo: "sin" }]));
   let viewer = null;
   const fotosDe = (k = giro) => slides[k].filter((s) => s.tipo === "foto");
@@ -872,7 +876,7 @@ section { scroll-margin-top: 24px; }
   function cargarVitrina() {
     if (vitrinaP) return vitrinaP;
     $("viewer").classList.add("is-loading");
-    return (vitrinaP = import("./vitrina3d.js?v=46d14e0")
+    return (vitrinaP = import("./vitrina3d.js?v=6c1c501")
       .then(({ createVitrina }) => { viewer = createVitrina($("viewer"), { onError: (err) => console.warn("Vitrina 3D:", err) }); })
       .catch(() => {
         // Sin 3D (red o navegador): la galería se queda solo con fotos
@@ -1087,7 +1091,7 @@ section { scroll-margin-top: 24px; }
     touched = true;
     $("viewer").classList.add("is-loading");
     try {
-      const { quitarFondo } = await import("./recorte.js?v=46d14e0");
+      const { quitarFondo } = await import("./recorte.js?v=6c1c501");
       const r = await quitarFondo(file), original = r.original;
       const nueva = { tipo: "foto", sin: r.url, original };
       if (!reduce) replay($("packet"), "go");
@@ -1191,11 +1195,11 @@ section { scroll-margin-top: 24px; }
     const origen = e.detail ? { x: e.clientX, y: e.clientY } : { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     b.setAttribute("aria-busy", "true");
     b.classList.add("is-abriendo");
-    import("./personaliza.js?v=46d14e0").then((m) => m.abrir({ giro, origen }))
+    import("./personaliza.js?v=6c1c501").then((m) => m.abrir({ giro, origen }))
       .catch(() => { b.lastChild.textContent = "No cargó, toca de nuevo"; })
       .finally(() => { b.removeAttribute("aria-busy"); b.classList.remove("is-abriendo"); });
   });
-  if (location.hash === "#personaliza") import("./personaliza.js?v=46d14e0").then((m) => m.abrir());
+  if (location.hash === "#personaliza") import("./personaliza.js?v=6c1c501").then((m) => m.abrir());
   const form = $("lead");
   form.addEventListener("submit", (e) => {
     e.preventDefault();
