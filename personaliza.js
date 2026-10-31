@@ -1,11 +1,12 @@
 // Personaliza tu página: el visitante arma su página (negocio, productos con fotos y tallas,
 // colores, estilo y secciones), la ve en vivo en celular o computadora y la manda por WhatsApp.
 // Se carga solo al tocar "Personaliza tu página".
-import { quitarFondo } from "./recorte.js?v=e50aae0";
+import { quitarFondo } from "./recorte.js?v=689c194";
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MAX_FOTOS = 5, MAX_PRODUCTOS = 6;
 const WA = document.querySelector('meta[name="archival-whatsapp"]')?.content.replace(/\D/g, "") || "";
+const FORMSPREE = document.querySelector('meta[name="archival-formspree"]')?.content.trim() || "";
 const GUARDADO = "archival-personaliza-v1";
 
 // Temas: cada uno es una página completa (fondo, tarjeta, texto, acento), no solo un color
@@ -129,7 +130,7 @@ function entrada({ capa }) {
 
 async function construir() {
   const css = document.createElement("link");
-  css.rel = "stylesheet"; css.href = new URL("./personaliza.css?v=e50aae0", import.meta.url).href;
+  css.rel = "stylesheet"; css.href = new URL("./personaliza.css?v=689c194", import.meta.url).href;
   const listo = new Promise((ok, bad) => { css.onload = ok; css.onerror = bad; });
   document.head.appendChild(css);
   if (!document.querySelector('link[href*="Fraunces"]')) {
@@ -473,6 +474,7 @@ function resumen() {
 }
 async function enviar() {
   const txt = textoResumen() + "\n\nLas fotos te las mando aquí mismo.";
+  if (FORMSPREE) fetch(`https://formspree.io/f/${FORMSPREE}`, { method: "POST", headers: { Accept: "application/json", "Content-Type": "application/json" }, body: JSON.stringify({ _subject: "Página armada en Archival", negocio: S.nombre, whatsapp: S.whats, resumen: txt }) }).catch(() => {}); // respaldo por correo
   if (WA) { window.open(`https://wa.me/52${WA}?text=${encodeURIComponent(txt)}`, "_blank", "noopener"); $("#pz-ok").textContent = "Se abrió WhatsApp con tu página. Solo dale enviar."; return; }
   try { await navigator.clipboard.writeText(txt); $("#pz-ok").textContent = "Copiado. Pégalo en WhatsApp cuando quieras."; }
   catch { $("#pz-ok").textContent = "No se pudo copiar automático: selecciona el texto de arriba y cópialo."; }

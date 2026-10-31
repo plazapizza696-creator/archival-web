@@ -6,6 +6,7 @@
 <title>Archival · Tu inventario en vivo, en tu página</title>
 <meta name="description" content="Archival le da a tu negocio una página profesional: tus productos en 3D, girando, con la cantidad exacta que tienes. Cambias una existencia en tu celular y tus clientes la ven al momento.">
 <meta name="archival-whatsapp" content=""><!-- WhatsApp de Archival a 10 dígitos; vacío = los envíos avisan que aún no está conectado -->
+<meta name="archival-formspree" content=""><!-- ID del formulario de Formspree (lo que va después de /f/); vacío = sin respaldo de leads -->
 <meta name="theme-color" content="#F2F4F8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0A0C14" media="(prefers-color-scheme: dark)">
 <link rel="canonical" href="https://plazapizza696-creator.github.io/archival-web/">
@@ -636,7 +637,7 @@ section { scroll-margin-top: 24px; }
       </div>
       <figure class="film">
         <video id="film" src="video/archival.mp4" poster="video/archival.jpg" controls muted playsinline preload="none"
-               aria-label="Video de 44 segundos con voz: Vale le toma foto a sus tenis, cambia la cantidad desde su celular y su clienta los aparta por WhatsApp."><track kind="captions" srclang="es" label="Español" src="video/archival.vtt?v=e50aae0" default></video>
+               aria-label="Video de 44 segundos con voz: Vale le toma foto a sus tenis, cambia la cantidad desde su celular y su clienta los aparta por WhatsApp."><track kind="captions" srclang="es" label="Español" src="video/archival.vtt?v=689c194" default></video>
       </figure>
 
       <div class="demo" id="demo">
@@ -811,6 +812,7 @@ section { scroll-margin-top: 24px; }
       </div>
       <!-- TODO: conectar el envío (WhatsApp Business API, Formspree o backend propio). Hoy solo valida y muestra la confirmación. -->
       <form class="form" id="lead" novalidate>
+        <input type="hidden" name="_subject" value="Nuevo lead de Archival">
         <div class="field">
           <label for="f-negocio">Nombre del negocio</label>
           <input id="f-negocio" name="negocio" autocomplete="organization" required placeholder="Taquería La Güera" aria-describedby="f-negocio-err">
@@ -865,7 +867,7 @@ section { scroll-margin-top: 24px; }
   // 3D: en tiempo libre y con buena conexión, se calienta la descarga de three.js y de los modelos
   if (!ahorra && !/2g|3g/.test(navigator.connection?.effectiveType || "")) {
     (window.requestIdleCallback || ((f) => setTimeout(f, 3000)))(() => {
-      [["modulepreload", "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"], ["modulepreload", "./vitrina3d.js?v=e50aae0"], ["prefetch", "modelos/jordan-1-royal.glb"], ["prefetch", "modelos/airpods-pro.glb"]]
+      [["modulepreload", "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"], ["modulepreload", "./vitrina3d.js?v=689c194"], ["prefetch", "modelos/jordan-1-royal.glb"], ["prefetch", "modelos/airpods-pro.glb"]]
         .forEach(([rel, href]) => { const l = document.createElement("link"); l.rel = rel; l.href = href; document.head.appendChild(l); });
     });
   }
@@ -892,7 +894,7 @@ section { scroll-margin-top: 24px; }
   function cargarVitrina() {
     if (vitrinaP) return vitrinaP;
     $("viewer").classList.add("is-loading");
-    return (vitrinaP = import("./vitrina3d.js?v=e50aae0")
+    return (vitrinaP = import("./vitrina3d.js?v=689c194")
       .then(({ createVitrina }) => { viewer = createVitrina($("viewer"), { onError: (err) => console.warn("Vitrina 3D:", err) }); })
       .catch(() => {
         // Sin 3D (red o navegador): la galería se queda solo con fotos
@@ -1108,7 +1110,7 @@ section { scroll-margin-top: 24px; }
     touched = true;
     $("viewer").classList.add("is-loading");
     try {
-      const { quitarFondo } = await import("./recorte.js?v=e50aae0");
+      const { quitarFondo } = await import("./recorte.js?v=689c194");
       const r = await quitarFondo(file), original = r.original;
       const nueva = { tipo: "foto", sin: r.url, original };
       if (!reduce) replay($("packet"), "go");
@@ -1200,6 +1202,7 @@ section { scroll-margin-top: 24px; }
 
   // Formulario: abre WhatsApp de Archival con los datos ya escritos; el interesado solo da enviar.
   const WHATSAPP_ARCHIVAL = document.querySelector('meta[name="archival-whatsapp"]').content.replace(/\D/g, ""); // vacío = el formulario avisa que aún no está conectado
+  const FORMSPREE = document.querySelector('meta[name="archival-formspree"]').content.trim(); // respaldo: el lead llega por correo aunque no den enviar en WhatsApp
 
   // Personaliza tu página: el estudio se carga hasta que alguien lo abre
   document.addEventListener("click", (e) => {
@@ -1212,11 +1215,11 @@ section { scroll-margin-top: 24px; }
     const origen = e.detail ? { x: e.clientX, y: e.clientY } : { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     b.setAttribute("aria-busy", "true");
     b.classList.add("is-abriendo");
-    import("./personaliza.js?v=e50aae0").then((m) => m.abrir({ giro, origen }))
+    import("./personaliza.js?v=689c194").then((m) => m.abrir({ giro, origen }))
       .catch(() => { b.lastChild.textContent = "No cargó, toca de nuevo"; })
       .finally(() => { b.removeAttribute("aria-busy"); b.classList.remove("is-abriendo"); });
   });
-  if (location.hash === "#personaliza") import("./personaliza.js?v=e50aae0").then((m) => m.abrir());
+  if (location.hash === "#personaliza") import("./personaliza.js?v=689c194").then((m) => m.abrir());
   const form = $("lead");
   form.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -1231,16 +1234,27 @@ section { scroll-margin-top: 24px; }
       return;
     }
     wa.setAttribute("aria-invalid", "false"); err.textContent = "";
-    if (!WHATSAPP_ARCHIVAL) { err.textContent = "Este formulario todavía no está conectado. Pronto podrás mandarnos tus datos desde aquí."; return; }
+    if (!WHATSAPP_ARCHIVAL && !FORMSPREE) { err.textContent = "Este formulario todavía no está conectado. Pronto podrás mandarnos tus datos desde aquí."; return; }
     const nombre = neg.value.trim();
-    const texto = `Hola Archival, quiero mi página. Negocio: ${nombre}. Qué vendo: ${$("f-giro").value}. Mi WhatsApp: ${digits}.`;
-    window.open(`https://wa.me/52${WHATSAPP_ARCHIVAL}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
-    const box = document.createElement("div");
-    box.className = "done"; box.setAttribute("role", "status");
-    box.innerHTML = `<strong></strong><p>Se abrió WhatsApp con tus datos. Solo dale enviar y te contestamos para armar tu página.</p>`;
-    box.firstChild.textContent = `Listo, ${nombre}.`;
-    form.replaceWith(box);
-    if (!reduce) box.animate([{ transform: "translateY(10px) scale(0.98)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 320, easing: EASE_OUT });
+    const respaldo = FORMSPREE
+      ? fetch(`https://formspree.io/f/${FORMSPREE}`, { method: "POST", headers: { Accept: "application/json" }, body: new FormData(form) }).then((r) => r.ok).catch(() => false)
+      : Promise.resolve(false);
+    const listo = (msg) => {
+      const box = document.createElement("div");
+      box.className = "done"; box.setAttribute("role", "status");
+      box.innerHTML = "<strong></strong><p></p>";
+      box.firstChild.textContent = `Listo, ${nombre}.`; box.lastChild.textContent = msg;
+      form.replaceWith(box);
+      if (!reduce) box.animate([{ transform: "translateY(10px) scale(0.98)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 320, easing: EASE_OUT });
+    };
+    if (WHATSAPP_ARCHIVAL) {
+      const texto = `Hola Archival, quiero mi página. Negocio: ${nombre}. Qué vendo: ${$("f-giro").value}. Mi WhatsApp: ${digits}.`;
+      window.open(`https://wa.me/52${WHATSAPP_ARCHIVAL}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
+      listo("Se abrió WhatsApp con tus datos. Solo dale enviar y te contestamos para armar tu página.");
+    } else {
+      const btn = form.querySelector('button[type="submit"]'); btn.disabled = true;
+      respaldo.then((ok) => { if (ok) listo("Recibimos tus datos. Te escribimos por WhatsApp para armar tu página."); else { btn.disabled = false; err.textContent = "No se pudo enviar. Intenta de nuevo en un momento."; } });
+    }
   });
 
   render(); clock();
